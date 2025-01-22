@@ -136,3 +136,20 @@ ggdraw() +
 ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
 #ggsave(file ="Figs/driversbytaxa_burst.pdf", scale = 2.5)
 
+
+#### heatmap plot ####
+ggplot(taxa_df, aes(x = Taxa2, y = Drivers, fill = n)) +
+  geom_tile() +
+  #scale_fill_continuous(type = "viridis") +
+  scale_fill_gradient(low = "white", high = "darkblue", name = "# of studies") +
+  labs(x = "Taxa", y = "Driver") +
+  theme_classic() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.text = element_text(face = "bold",
+                                  size = 12),
+        axis.title = element_text(face = "bold",
+                                 size = 14),
+        legend.text = element_text(face = "bold",
+                                   size = 12),
+        legend.title = element_text(face = "bold",
+                                    size = 14))
