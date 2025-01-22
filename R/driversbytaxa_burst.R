@@ -137,12 +137,37 @@ ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
 #ggsave(file ="Figs/driversbytaxa_burst.pdf", scale = 2.5)
 
 
-#### heatmap plot ####
-ggplot(taxa_df, aes(x = Taxa2, y = Drivers, fill = n)) +
+#### heatmap dataframe and plot ####
+heatmap_df <- hs_drivers %>% 
+  separate_rows(Taxa, sep=",") %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
+                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes",
+                              "Misc"="many",
+                              "None"="none")) %>% 
+  group_by(Drivers, Drivercat, Taxa2) %>% 
+  count(Taxa2) %>% 
+  ungroup() %>% 
+  group_by(Drivers) %>% 
+  mutate(Total=sum(n)) %>% 
+  ungroup() %>% 
+  mutate(Taxa2 = as.factor(Taxa2),
+         Percent = n/Total * 100,
+         Drivers = str_to_title(Drivers)) # captialize first letter like to match taxa
+
+# make the plot
+ggplot(heatmap_df, aes(x = Taxa2, y = Drivers, fill = Percent)) +
   geom_tile() +
-  #scale_fill_continuous(type = "viridis") +
-  scale_fill_gradient(low = "white", high = "darkblue", name = "# of studies") +
+  scale_fill_gradient(low = "white", high = "skyblue", name = "% of Studies",
+                      guide = guide_colorbar(frame.colour = "gray", ticks.colour = "black")) +
   labs(x = "Taxa", y = "Driver") +
+  geom_text(aes(x = Taxa2, y = Drivers, label = n)) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90, hjust = 1),
         axis.text = element_text(face = "bold",
@@ -152,4 +177,7 @@ ggplot(taxa_df, aes(x = Taxa2, y = Drivers, fill = n)) +
         legend.text = element_text(face = "bold",
                                    size = 12),
         legend.title = element_text(face = "bold",
-                                    size = 14))
+                                    size = 14)) +
+  scale_x_discrete(expand = c(0,0)) +
+  scale_y_discrete(expand = c(0,0)) 
+ggsave(file ="figs/driversbytaxa_percheatmap.png")
