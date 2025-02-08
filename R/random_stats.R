@@ -4,6 +4,11 @@ library(tidyverse)
 # read in data and remove duplicates from multirealm studies
 main <- readRDS("output/main_hs.RDS") %>% distinct(Title, .keep_all = TRUE) 
 
+type_perc <- main %>% 
+  group_by(Type) %>% 
+  count() %>% 
+  mutate(Type_perc = (n/nrow(main) * 100))
+
 # count number of studies that looked at persistence
 # NOte Moreno & Matthews doesn't currently have a Y for persistence but they 
 # did actually look at it, so add 1 to the total

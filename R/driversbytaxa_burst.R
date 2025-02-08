@@ -13,14 +13,15 @@ hs_drivers <- main %>%
   mutate_at(vars(Drivers_examined_condensed),list(factor)) %>%
   mutate(Drivers = forcats::fct_collapse(Drivers_examined_condensed,
                                          "bathy & topo" = c("bathymetry","topography"),
-                                         "climate & hydrology" = c("climate","hydrology"))) %>% 
+                                         "climate & hydrology" = c("climate","hydrology"),
+                                         "physical habitat structure" = c("habitat"))) %>% 
   filter(Drivers != "none") %>% 
   mutate(Drivercat = forcats::fct_collapse(Drivers,
                                            abiotic=c("bathy & topo","circulation",
                                                      "distance to physical features",
-                                                     "fronts", "habitat","climate & hydrology",
+                                                     "fronts", "physical habitat structure","climate & hydrology",
                                                      "water biogeochemistry","pollution","salinity",
-                                                     "temperature"),
+                                                     "temperature", "light"),
                                            biotic = c("primary productivity","biodiversity",
                                                       "species attributes"),
                                            anthropogenic = c("human activity","fishing","shipping","pollution")))
@@ -133,7 +134,7 @@ p2 <- ggplot(taxa_df) +
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
-ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
+ggsave(file ="Figs/driversbytaxa_burst.svg", scale = 2.5)
 #ggsave(file ="Figs/driversbytaxa_burst.pdf", scale = 2.5)
 
 
@@ -163,7 +164,7 @@ heatmap_df <- hs_drivers %>%
 
 # make the plot
 ggplot(heatmap_df, aes(x = Taxa2, y = Drivers, fill = Percent)) +
-  geom_tile() +
+  geom_tile(color = "black") +
   scale_fill_gradient(low = "white", high = "skyblue", name = "% of Studies",
                       guide = guide_colorbar(frame.colour = "gray", ticks.colour = "black")) +
   labs(x = "Taxa", y = "Driver") +
@@ -180,4 +181,4 @@ ggplot(heatmap_df, aes(x = Taxa2, y = Drivers, fill = Percent)) +
                                     size = 14)) +
   scale_x_discrete(expand = c(0,0)) +
   scale_y_discrete(expand = c(0,0)) 
-ggsave(file ="figs/driversbytaxa_percheatmap.png")
+ggsave(file ="figs/driversbytaxa_percheatmap.png", scale = 1.5)

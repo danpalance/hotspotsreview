@@ -6,3 +6,5 @@
 .quarto
 data/*
 figs/*
+output/*
+docs/*

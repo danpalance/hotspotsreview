@@ -42,15 +42,20 @@ taxa_type_percentage <- taxa_df %>%
   mutate(Taxa_tot = sum(n),
          Taxa_pctg = (n/Taxa_tot)*100) %>% 
   ungroup() %>% 
+  #Reorder the type factor for the plot by category
   mutate(Type = factor(Type, 
-                       levels = c("Pollution",
-                                  "Warming", "Threat", "Mortality", "Invasives", "Fisheries", "Water Chemistry", "Bioaccumulation",       
-                                  "Reproduction & Recruitment", "Nutrients & Biogeochemical-Cycling", "Habitat", "Foraging", "Diversity & Endemism", "Abundance/Density")))
-  
+                       levels = c("Pollution", "Warming", "Threat",  
+                                  "Mortality", "Invasives", "Fisheries", "Water Chemistry",
+                                  "Bioaccumulation", "Reproduction & Recruitment", 
+                                  "Nutrients & Biogeochemical-Cycling", "Habitat",
+                                  "Foraging", "Diversity & Endemism", "Abundance/Density"))) 
 
+  
+# Plot for stacked bar graph to go near hotspot definition panel
 ggplot() +
   geom_bar(data = taxa_type_percentage,
            aes(x = Type, y = Taxa_pctg, fill = Taxa2), stat="identity") +
+  # scale_x_discrete(limits = level_order) +
   scale_fill_brewer(name = "Taxa",
                     palette = "Set3") +
   labs(x = "Hotspot Type", y = "Percentage") +
@@ -61,8 +66,8 @@ ggplot() +
                                   size = 16)) +
   scale_y_continuous(expand = c(0,0)) +
   coord_flip() 
-ggsave(file ="Figs/taxabytype_stackedbar.pdf",scale=2)
-ggsave(file ="Figs/taxabytype_stackedbar.svg",scale=2)
+#ggsave(file ="figs/taxabytype_stackedbar.pdf",scale=2)
+ggsave(file ="figs/taxabytype_stackedbar.svg",scale=2)
 
 # Setup empty bar spacers between types
 empty_bar <- 1
