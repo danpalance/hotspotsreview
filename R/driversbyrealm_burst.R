@@ -25,7 +25,24 @@ hs_drivers <- main %>%
 circulation <- hs_drivers %>% 
   filter(Drivers_examined_condensed == "circulation")
 eddies <- main %>% filter(grepl(pattern = "eddies", Drivers_examined))
-15/79
+
+hs_driver_comps <- main %>% 
+  separate_rows(Drivers_examined, sep =", ") %>% 
+  separate_rows(Drivers_examined, sep =",") %>% 
+  group_by(Drivers_examined) %>% 
+  count()
+
+ggplot(hs_driver_comps) +
+  geom_bar(aes(x = Drivers_examined)) +
+  labs(x = "Driver component", y = "# of Studies") +
+  theme_classic() +
+  scale_y_continuous(expand = c(0,0)) +
+  theme(axis.text.x = element_text(angle = 90))
+  
+
+unique(hs_driver_comps$Drivers_examined)
+
+
 
 # Make dataframe seprating Taxa and hotspot drivers into rows and condensing them into broader categories
 realm_df <- hs_drivers %>% 

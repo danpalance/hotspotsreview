@@ -8,14 +8,13 @@ library(glue)
 
 #### Read in and organize data ####
 # read in the csv as a dataframe
-hs_data <- read.csv("data/hsr_final.csv")[,2:20] # Remove the first column and last two columns
+hs_data <- read.csv("data/hsr_final.csv")[,2:19] # Remove the first column and last four columns
 
 # Rename columns to something more R friendly
 colnames(hs_data) <- c("Authors","Year","Methods","Title","Def_clarity","Type",
                       "Definition","Taxa","Journal","Lat","Lon","Location",
                       "Depth","Summary","Persistence","Drivers_examined", 
-                      "Drivers_examined_condensed", "Drivers_suggested", 
-                      "Drivers_suggested_condensed") 
+                      "Drivers_examined_condensed", "Condensed_var") 
 
 # Remove these two types since they're too new to define well
 hsr_df <- hs_data %>% 
