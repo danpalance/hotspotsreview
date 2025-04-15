@@ -171,14 +171,14 @@ links <- bind_rows(
   group_by(source, target) %>%
   summarise(value = sum(n), .groups = "drop") %>%
   mutate(across(c(source, target), ~ nodes$idx[match(.x, nodes$name_node)])) %>% 
-  mutate(color = c("lightpink", "khaki", "lightcyan", "lavender", "khaki", "rosybrown", "khaki", "rosybrown", "rosybrown", "lavender", 
-                   "lightpink", "khaki", "wheat", "khaki", "lightcyan", "lightpink", "khaki", "wheat", "wheat", "wheat", 
-                   "wheat", "lightpink", "lavender", "wheat", "lightpink", "wheat", "wheat", "lightcyan", "lavender", "lavender",
+  mutate(color = c("lightpink", "khaki", "lightblue", "plum", "khaki", "rosybrown", "khaki", "rosybrown", "rosybrown", "plum", 
+                   "lightpink", "khaki", "wheat", "khaki", "lightblue", "lightpink", "khaki", "wheat", "wheat", "wheat", 
+                   "wheat", "lightpink", "plum", "wheat", "lightpink", "wheat", "wheat", "lightblue", "plum", "plum",
                    "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink",
                    "lightpink", "lightpink", "lightpink", "khaki", "khaki", "khaki", "khaki", "khaki", "khaki", "khaki",
-                   "khaki", "khaki", "khaki", "khaki", "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lightcyan",
-                   "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lavender", "lavender", "lavender", "lavender", "lavender", "lavender",
-                   "lavender", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown",
+                   "khaki", "khaki", "khaki", "khaki", "lightblue", "lightblue", "lightblue", "lightblue", "lightblue", "lightblue",
+                   "lightblue", "lightblue", "lightblue", "lightblue", "plum", "plum", "plum", "plum", "plum", "plum",
+                   "plum", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown",
                    "rosybrown", "rosybrown", "rosybrown", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", 
                    "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat"))
 
@@ -187,7 +187,7 @@ plot_ly(
   orientation = "h",
   node = list(label = nodes$name_node, pad = 15, thickness = 15, color = node_color),
   link = as.list(links))
-"khaki"
+"plum"
 
 
 
