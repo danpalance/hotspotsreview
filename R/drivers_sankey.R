@@ -3,7 +3,8 @@
 
 # Load required packages
 library(tidyverse)
-#library(networkD3)
+library(plotly)
+library(networkD3)
 
 # Read in the main dataframe created in earlier code
 main <- readRDS(file ="output/main_hs.RDS")
@@ -134,7 +135,7 @@ hs_driver_components <- main %>%
                     "Dynamic physical" = c("Temperature", "Circulation", "Atmospheric",
                     "Distance to features", "Ice", "Sea state", "Water column structure",
                     "Misc dyphys"),
-                    "Static physical" = c("General bathy/topo", "Seabed characteristics",
+                    "Bathy & topo" = c("General bathy/topo", "Seabed characteristics",
                                           "Bathy structures"),
                     Biogeochem = c("Nutrients", "Carbon cycle", "Oxygen & acidifcation"),
                     "Species attributes" = c("Life history", "Physio & morph",
@@ -149,68 +150,52 @@ hs_driver_components <- main %>%
   ungroup() 
 
 
-# nodes <- data.frame(
-#   name=c(as.character(hs_drivers$Driver),
-#          as.character(hs_drivers$Type)) %>% unique()
-# )
-# 
-# hs_drivers$IDsource <- match(hs_drivers$Driver, nodes$name)-1
-# hs_drivers$IDtarget <- match(hs_drivers$Type, nodes$name)-1
-# 
-# p <- sankeyNetwork(Links = hs_drivers, Nodes = nodes,
-#                    Source = "IDsource", Target = "IDtarget",
-#                    Value = "n", NodeID = "name",
-#                    sinksRight=FALSE, fontSize = 12, nodeWidth = 30)
-# p
-# 
-# 
-# 
-# nodes2 <- data.frame(
-#   name=c(as.character(hs_driver_components$Driver),
-#          as.character(hs_driver_components$Driver_comp)) %>% unique()
-# )
-# 
-# hs_driver_components$IDsource <- match(hs_driver_components$Driver_comp, nodes2$name)-1
-# hs_driver_components$IDtarget <- match(hs_driver_components$Driver, nodes2$name)-1
-# 
-# p2 <- sankeyNetwork(Links = hs_driver_components, Nodes = nodes2,
-#                    Source = "IDsource", Target = "IDtarget",
-#                    Value = "n", NodeID = "name",
-#                    sinksRight=FALSE, fontSize = 12, nodeWidth = 30)
-# p2
-# 
-# 
-# df <- structure(list(
-#   network_name = c("YAGHO", "YAGHO", "YAGHO", "YAGHO","YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO","YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO","YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO", "YAGHO"),
-#   type = c("deposits", "deposits", "withdrawals", "withdrawals", "trf_outgoing", "trf_outgoing","trf_incoming", "trf_incoming", "trf_incoming", "trf_incoming","trf_outgoing", "trf_incoming", "trf_outgoing", "trf_outgoing","chk_issued", "chk_issued", "chk_issued", "chk_issued", "chk_received","chk_received", "chk_received", "chk_received", "chk_received","chk_received"),
-#   thirdparty = c("Christine", "Mike", "Patrick","Natalie", "Renee", "Jacob", "Renee", "Kathy", "John", "Ahmad", "Ahmad", "Tito", "Tito", "John", "Sally", "Tito", "John", "Ahmad", "Mohamad", "Tito", "John", "Sally", "Tito", "John"),
-#   amount = c(2038472, 683488, 38765, 123413, 94543234, 20948043, 34842843, 218864, 6468486, 384684, 5348687, 34684687, 6936937, 16841287, 1584587, 1901504.4, 2281805.28, 2738166.34, 295910.77, 4114374.62, 26680528.46, 5336105.38, 12954836.15, 1218913.08)))
-# df <- bind_cols(df)   # or: as.data.frame(df)
-
-library(plotly)
-
-# Prepare node and link data for plotting
-nodes <- df %>%
-  pivot_longer(-amount, values_to = "name_node") %>%
-  distinct(name_node) %>%
-  mutate(idx = (1:n()) - 1)
+#### Create sankey plot ####
+node_color <- c("coral", "blue", "coral","coral", "coral", "green", "coral", "blue",
+                "blue", "darkgreen", "blue", "coral", "blue", "darkgreen", "darkgreen",
+                "blue", "goldenrod", "blue", "darkgreen", "yellow", "yellow", "yellow",
+                "yellow", "yellow", "yellow", "yellow", "darkgreen", "aquamarine", "aquamarine",
+                "aquamarine", "aquamarine", "orchid", "orchid", "orchid", "orchid", "orchid",
+                "orchid", "saddlebrown", "saddlebrown", "saddlebrown", "saddlebrown", "ivory", "ivory",
+                "ivory", "ivory", "ivory", "ivory", "ivory", "ivory", "ivory")
 
 nodes <- hs_driver_components %>%
   pivot_longer(-n, values_to = "name_node") %>%
   distinct(name_node) %>%
-  mutate(idx = (1:n()) - 1)
+  mutate(idx = (1:n()) - 1,
+         color = node_color)
 
 links <- bind_rows(
   hs_driver_components %>% select(source = Driver_comp, target = Driver, n),
   hs_driver_components %>% select(source = Driver, target = Type, n)) %>%
   group_by(source, target) %>%
   summarise(value = sum(n), .groups = "drop") %>%
-  mutate(across(c(source, target), ~ nodes$idx[match(.x, nodes$name_node)]))
+  mutate(across(c(source, target), ~ nodes$idx[match(.x, nodes$name_node)])) %>% 
+  mutate(color = c("lightpink", "khaki", "lightcyan", "lavender", "khaki", "rosybrown", "khaki", "rosybrown", "rosybrown", "lavender", 
+                   "lightpink", "khaki", "wheat", "khaki", "lightcyan", "lightpink", "khaki", "wheat", "wheat", "wheat", 
+                   "wheat", "lightpink", "lavender", "wheat", "lightpink", "wheat", "wheat", "lightcyan", "lavender", "lavender",
+                   "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink", "lightpink",
+                   "lightpink", "lightpink", "lightpink", "khaki", "khaki", "khaki", "khaki", "khaki", "khaki", "khaki",
+                   "khaki", "khaki", "khaki", "khaki", "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lightcyan",
+                   "lightcyan", "lightcyan", "lightcyan", "lightcyan", "lavender", "lavender", "lavender", "lavender", "lavender", "lavender",
+                   "lavender", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown", "rosybrown",
+                   "rosybrown", "rosybrown", "rosybrown", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", 
+                   "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat"))
 
-# Plot
 plot_ly(
   type = "sankey",
   orientation = "h",
-  node = list(label = nodes$name_node, pad = 15, thickness = 15),
+  node = list(label = nodes$name_node, pad = 15, thickness = 15, color = node_color),
   link = as.list(links))
+"khaki"
+
+
+
+
+# Make the same plot using networkD3
+sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
+              Target = "target", Value = "value", NodeID = "name_node",
+              units = "TWh", fontSize = 12, nodeWidth = 30)
+
+
 
