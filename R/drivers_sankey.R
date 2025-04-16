@@ -182,12 +182,15 @@ links <- bind_rows(
                    "rosybrown", "rosybrown", "rosybrown", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", 
                    "wheat", "wheat", "wheat", "wheat", "wheat", "wheat", "wheat"))
 
-plot_ly(
+p <- plot_ly(
   type = "sankey",
   orientation = "h",
+  textfont = list(size = 24),
   node = list(label = nodes$name_node, pad = 15, thickness = 15, color = node_color),
   link = as.list(links))
-"plum"
+kaleido(p, file = "figs/driver_sankey.png")
+
+
 
 
 
