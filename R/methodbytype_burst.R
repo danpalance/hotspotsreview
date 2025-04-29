@@ -3,7 +3,6 @@ library(tidyverse)
 library(ggtext)
 library(cowplot)
 
-
 # Read in the data from the first R script
 main <- readRDS("output/main_hs.RDS")
 
@@ -12,7 +11,13 @@ methods_df <- main %>%
   filter(Year!="1988") %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
   separate_rows(Methods, sep = ", ") %>% 
-  group_by(Type, Methods,Category) %>% 
+  mutate(Methclass = fct_collapse(Methods, 
+                                  "Field" = c("Survey", "Fishery", "Biologging", 
+                                              "Acoustics", "Social Survey",
+                                              "Paleontology", "Radar", "Experiment"),
+                                  "Non-field" = c("Satellite", "Model", "Lab",
+                                                  "Review", "Database"))) %>%
+  group_by(Type, Methods, Methclass, Category) %>% 
   count(Type) %>% 
   ungroup() %>% 
   group_by(Type) %>% 
@@ -69,9 +74,9 @@ grid_data <- grid_data[-13,] # remove the scale bars for the area where the scal
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(methods_df, aes(x=Methods, y=n, fill=Type)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=Category), stat="identity") + # need to get taxa ordered and colored by grouping
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) + 
+p1 <- ggplot(methods_df, aes(x = Methods, y = n, fill = Methclass)) +       
+  geom_bar(aes(x=as.factor(id), y=n, fill = Methclass), stat="identity", col = "black") + # need to get taxa ordered and colored by grouping
+  scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) + 
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
@@ -96,11 +101,9 @@ p1 <- ggplot(methods_df, aes(x=Methods, y=n, fill=Type)) +
             colour = "black", alpha=0.8, size=3, fontface="bold", inherit.aes = FALSE)
 
 p2 <- ggplot(methods_df) +       
-  geom_col(aes(x=as.factor(id), y=Total, fill=Type), col=NA,width=1.5) + 
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-  #                                                      "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-  #                                                      "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-  #                                                      "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+  geom_col(aes(x = as.factor(id), y = Total, fill = Category), 
+           col = NA, width = 1.5) + 
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) + 
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -114,3 +117,4 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/methodsbytype_burst.png",scale=2)
+ggsave(file ="Figs/methodsbytype_burst.svg",scale=2)

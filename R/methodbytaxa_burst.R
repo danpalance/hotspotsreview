@@ -18,7 +18,7 @@ taxa_df <- main %>%
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
   separate_rows(Taxa, sep=",") %>% 
   separate_rows(Methods, sep=", ") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish" = c("bony fish","cart fish","reef fish"),
                                   "Seabirds"="seabirds",
                                   "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
                                   "Reptiles"=c("sea turtles","sea snake"),
@@ -28,14 +28,21 @@ taxa_df <- main %>%
                                   "Plants & Seaweed"=c("macroalgae","plants"),
                                   "Microbes"="microbes",
                                   "Misc"="many",
-                                  "None"="none")) %>% 
-  group_by(Taxa2, Methods) %>% 
+                                  "None"="none"),
+         Methclass = fct_collapse(Methods, 
+                                  "Field" = c("Survey", "Fishery", "Biologging", 
+                                              "Acoustics", "Social Survey",
+                                              "Paleontology", "Radar", "Experiment"),
+                                  "Non-field" = c("Satellite", "Model", "Lab",
+                                                  "Review", "Database"))) %>% 
+  group_by(Taxa2, Methods, Methclass) %>% 
   count(Taxa2) %>% 
   ungroup() %>% 
   group_by(Taxa2) %>% 
   mutate(Total=sum(n)) %>% 
   ungroup() %>% 
-  mutate(Taxa2 = as.factor(Taxa2))
+  mutate(Taxa2 = as.factor(Taxa2)) 
+  
 
 methods_percentage <- taxa_df %>% 
   select(Methods, n) %>% 
@@ -46,7 +53,7 @@ methods_percentage <- taxa_df %>%
 
 # Setup empty bar spacers between realms
 empty_bar <- 1
-to_add <- data.frame(matrix(NA,empty_bar*nlevels(taxa_df$Taxa2),ncol(taxa_df)))
+to_add <- data.frame(matrix(NA, empty_bar*nlevels(taxa_df$Taxa2), ncol(taxa_df)))
 colnames(to_add) <- colnames(taxa_df)
 to_add$Taxa2 <- rep(levels(taxa_df$Taxa2), each = empty_bar)
 taxa_df <- rbind(taxa_df, to_add)
@@ -65,7 +72,7 @@ label_data$angle <- ifelse(angle < -90, angle+180, angle)
 # prepare a data frame for base lines
 base_data <- taxa_df %>% 
   group_by(Taxa2) %>% 
-  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% # need to fix this since those that only have one occurrence aren't getting a line
+  summarize(start=min(id), end=max(id)) %>% # need to fix this since those that only have one occurrence aren't getting a line
   rowwise() %>% 
   mutate(title=mean(c(start, end)))
 number_of_bar.base <- nrow(base_data)
@@ -89,13 +96,9 @@ grid_data <- grid_data[-13,] # remove the scale bars for the area where the scal
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(taxa_df, aes(x=Methods, y=n, fill=Taxa2)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=Taxa2), stat="identity") + # need to get taxa ordered and colored by grouping
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-  #                                                      "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-  #                                                      "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-  #                                                      "Global"="lightsteelblue4","Open Ocean"="gray59")) +
-  
+p1 <- ggplot(taxa_df, aes(x=Methods, y=n, fill = Methclass)) +       
+  geom_bar(aes(x=as.factor(id), y = n, fill = Methclass), stat="identity", col = "black") + # need to get taxa ordered and colored by grouping
+  scale_fill_manual(values=c("Field"="white", "Non-field"="darkslategrey")) +
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
@@ -121,10 +124,7 @@ p1 <- ggplot(taxa_df, aes(x=Methods, y=n, fill=Taxa2)) +
 
 p2 <- ggplot(taxa_df) +       
   geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), col=NA,width=1.5) + 
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-  #                                                      "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-  #                                                      "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-  #                                                      "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+  scale_fill_brewer(palette = "Set3") +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -138,3 +138,4 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/methodsbytaxa_burst.png",scale=2)
+ggsave(file ="Figs/methodsbytaxa_burst.svg",scale=2)

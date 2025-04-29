@@ -19,8 +19,14 @@ methods_df <- main %>%
                                   "Plants & Seaweed"=c("macroalgae","plants"),
                                   "Microbes"="microbes",
                                   "Misc"="many",
-                                  "None"="none")) %>% 
-  group_by(Taxa2) %>% 
+                                  "None"="none"),
+         Methclass = fct_collapse(Methods, 
+                                 "Field" = c("Survey", "Fishery", "Biologging", 
+                                             "Acoustics", "Social Survey",
+                                             "Paleontology", "Radar", "Experiment"),
+                                 "Non-field" = c("Satellite", "Model", "Lab",
+                                                 "Review", "Database"))) %>%
+  group_by(Taxa2, Methclass) %>% 
   count(Methods) %>% 
   ungroup() %>% 
   group_by(Methods) %>% 
@@ -37,7 +43,7 @@ to_add$Methods <- rep(levels(methods_df$Methods), each = empty_bar)
 methods_df <- rbind(methods_df, to_add)
 methods_df$Taxa2 <- as.factor(methods_df$Taxa2)
 methods_df <- as.data.frame(methods_df)
-methods_df <- methods_df %>% arrange(Methods) 
+methods_df <- methods_df %>% arrange(Methods, -n) 
 methods_df$id <- seq(1, nrow(methods_df))
 
 # Get the name and the y position of each label
@@ -74,8 +80,9 @@ grid_data$start <- grid_data$start - 1
 
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(methods_df, aes(x=Taxa2, y=n, fill=Methods)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=Methods), stat="identity") + 
+p1 <- ggplot(methods_df, aes(x = Taxa2, y =n, fill = Taxa2)) +       
+  geom_bar(aes(x=as.factor(id), y=n, fill = Taxa2), stat="identity") + 
+  scale_fill_brewer(palette = "Set3") +
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 10, xend = start, yend = 10), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
@@ -99,7 +106,8 @@ p1 <- ggplot(methods_df, aes(x=Taxa2, y=n, fill=Methods)) +
             colour = "black", alpha=0.8, size = 3.5, fontface = "bold", inherit.aes = FALSE)
 
 p2 <- ggplot(methods_df) +       
-  geom_col(aes(x=as.factor(id), y=Total, fill=Methods), col=NA,width=1.5) + 
+  geom_col(aes(x=as.factor(id), y=Total, fill = Methclass), , width=1.5) + 
+  scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -113,3 +121,4 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/taxabymethods_burst.png",scale=2)
+ggsave(file ="Figs/taxabymethods_burst.svg",scale=2)

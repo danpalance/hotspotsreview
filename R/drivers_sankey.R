@@ -11,7 +11,7 @@ main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver
 hs_drivers <- main %>% 
-  distinct() %>% # remove duplicates due to studies occurring in multiple regions
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Condensed_var, sep =", ") %>% 
   mutate_at(vars(Condensed_var), list(factor)) %>%
   filter(Condensed_var != "none") %>% 
@@ -27,7 +27,7 @@ hs_drivers <- main %>%
 # do the above but use percentage of studies instead of straight number
 
 hs_driver_components <- main %>% 
-  distinct() %>% # remove duplicates due to studies occurring in multiple regions
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
   mutate(Drivers_examined = as.factor(Drivers_examined)) %>% 
@@ -188,7 +188,8 @@ p <- plot_ly(
   textfont = list(size = 24),
   node = list(label = nodes$name_node, pad = 15, thickness = 15, color = node_color),
   link = as.list(links))
-kaleido(p, file = "figs/driver_sankey.png")
+#orca(p, file = "figs/driver_sankey.png")
+p
 
 
 
@@ -199,6 +200,71 @@ kaleido(p, file = "figs/driver_sankey.png")
 sankeyNetwork(Links = links, Nodes = nodes, Source = "source",
               Target = "target", Value = "value", NodeID = "name_node",
               units = "TWh", fontSize = 12, nodeWidth = 30)
+
+taxa_list <- hs_driver_components %>% 
+  separate_rows(Taxa, sep=",") %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
+                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes",
+                              "Misc"="many",
+                              "None"="none")) %>% 
+  group_by(Driver_comp, Driver, Taxa2) %>% 
+  count(Taxa2) %>% 
+  ungroup() %>% 
+  group_by(Taxa2) %>% 
+  mutate(Total=sum(n)) %>% 
+  ungroup() %>% 
+  mutate(Taxa2 = as.factor(Taxa2),
+         Percent = (n/Total)*100) %>%
+  group_split(Taxa2)
+
+
+# make plotting function to do individual taxa plots
+driver_plot <- function(df){
+  ggplot(data = df) +
+    geom_bar(aes(x = reorder(Driver_comp, Percent), y = Percent, fill = Driver), col = "black", stat = "identity") +
+    scale_fill_manual(values = c("Ecological" = "coral",
+                                 "Dynamic physical" = "ivory",
+                                 "Bathy & topo" = "saddlebrown",
+                                 "Biogeochem" = "aquamarine",
+                                 "Species attributes" = "orchid",
+                                 "Anthropogenic" = "yellow"),
+                      name = "Indicator/Covariate\n Category") + # LEFT OFF HERE, NEED TO FINISH THIS LINE AND GET THE ORDER OF BARS IN DESCENDING
+    scale_y_continuous(expand = c(0,0),
+                       limits = c(0,25)) +
+    theme_classic() +
+    labs(x = "Indicator/Covariate Component", y = "% of Studies", title = df$Taxa2[1]) +
+    theme(plot.title = element_text(face = "bold",
+                                    size = 16,
+                                    hjust = 0.5),
+          axis.text = element_text(face = "bold",
+                                   size = 12),
+          axis.title = element_text(face = "bold",
+                                    size = 14),
+          legend.position = "inside",
+          legend.position.inside = c(0.75,0.25),
+          legend.text = element_text(face = "bold",
+                                     size = 10),
+          legend.title = element_text(face = "bold",
+                                      size = 12,
+                                      hjust = 0.5)) +
+    coord_flip()
+}
+
+# Now build and export the plots by taxa in a loop
+for (i in 1:length(taxa_list)){
+  temp_df <- taxa_list[[i]]
+  temp_df$Taxa2 <- as.character(temp_df$Taxa2)
+  taxa_name <- temp_df$Taxa2[1] # get the decade name
+  driver_plot(df = temp_df)
+  ggsave(file = file.path("figs/", paste0(taxa_name,"_drivers.png")))
+}
 
 
 

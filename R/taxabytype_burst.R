@@ -48,8 +48,23 @@ taxa_type_percentage <- taxa_df %>%
                                   "Mortality", "Invasives", "Fisheries", "Water Chemistry",
                                   "Bioaccumulation", "Reproduction & Recruitment", 
                                   "Nutrients & Biogeochemical-Cycling", "Habitat",
-                                  "Foraging", "Diversity & Endemism", "Abundance/Density"))) 
+                                  "Foraging", "Biodiversity & Endemism", "Abundance/Density"))) 
 
+inverts <- main %>% 
+  separate_rows(Taxa, sep=",") %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
+                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes",
+                              "Misc"="many",
+                              "None"="none")) %>% 
+  filter(Taxa2 == "Invertebrates") %>% 
+  distinct(Title, .keep_all = TRUE) # remove duplicates from multirealm studies
   
 # Plot for stacked bar graph to go near hotspot definition panel
 ggplot() +
@@ -66,7 +81,7 @@ ggplot() +
                                   size = 16)) +
   scale_y_continuous(expand = c(0,0)) +
   coord_flip() 
-#ggsave(file ="figs/taxabytype_stackedbar.pdf",scale=2)
+ggsave(file ="figs/taxabytype_stackedbar.png",scale=2)
 ggsave(file ="figs/taxabytype_stackedbar.svg",scale=2)
 
 # Setup empty bar spacers between types

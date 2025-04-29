@@ -35,7 +35,6 @@ hsr_df$Category <- forcats::fct_collapse(hsr_df$Type,
 hsr_df$Type <- forcats::fct_collapse(hsr_df$Type, 
                                      Habitat=c("Habitat","Freq of Occurence")) 
 
-
 # Get all unique lat lons from each study into individual rows 
 hs_locations <- hsr_df %>% 
   separate_rows(c(Lat,Lon), sep =",") %>% 
@@ -89,7 +88,9 @@ main <- as.data.frame(meow_hs) %>%
   distinct() %>% 
   mutate(Type = forcats::fct_recode(Type, "Water Chemistry" = "Eutrophication & Acidification",
                                     "Threat" = "Multi-Risk & Threat",
-                                    "Fisheries" = "Fisheries & Bycatch"))
+                                    "Fisheries" = "Fisheries & Bycatch",
+                                    "Biodiversity & Endemism" = "Diversity & Endemism",
+                                    "Invasive Species" = "Invasives"))
 saveRDS(main, file ="output/main_hs.RDS")
 #main <- readRDS(file ="output/main_hs.RDS")
 

@@ -10,7 +10,7 @@ main <- readRDS("output/main_hs.RDS")
 # Make realm dataframe
 realm_df <- main %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
-  group_by(Type,REALM) %>% 
+  group_by(Type,Category,REALM) %>% 
   count(REALM) %>% 
   ungroup() %>% 
   group_by(Type) %>% 
@@ -18,7 +18,16 @@ realm_df <- main %>%
   ungroup() %>% 
   mutate(Type = as.factor(Type))
 
-
+realm_cat_perc <- main %>% 
+  group_by(REALM, Type,Category) %>% 
+  count(Type) %>% 
+  ungroup() %>% 
+  group_by(REALM) %>% 
+  mutate(Total=sum(n)) %>% 
+  ungroup() %>% 
+  mutate(Perc = (n/Total)*100) %>% 
+  group_by(REALM, Category) %>% 
+  summarize(Cat_perc = sum(Perc))
 
 # Setup empty bar spacers between realms
 empty_bar <- 1
@@ -67,12 +76,20 @@ grid_data <- grid_data[-13,] # remove the scale bars for the area where the scal
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(realm_df, aes(x=REALM, y=n, fill=Type)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=Type), stat="identity") + # need to get taxa ordered and colored by grouping
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-    #                                                    "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-    #                                                    "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-    #                                                    "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+p1 <- ggplot(realm_df, aes(x=REALM, y=n, fill= Type)) +       
+  geom_bar(aes(x=as.factor(id), y=n, fill= REALM), stat="identity") + # need to get taxa ordered and colored by grouping
+  scale_fill_manual(name=bquote(bold("Realm")),
+                    values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", 
+                             "Temperate Northern Pacific"="mediumseagreen", 
+                             "Tropical Atlantic"="gold2", "Central Indo-Pacific"="sienna2", 
+                             "Temperate Australasia"="maroon4",
+                             "Temperate South America"="turquoise", 
+                             "Tropical Eastern Pacific"="olivedrab1",
+                             "Eastern Indo-Pacific"="palevioletred1",
+                             "Temperate Northern Atlantic"="palegreen4",
+                             "Temperate Southern Africa"="slategray2", 
+                             "Western Indo-Pacific"="thistle1",
+                              "Global"="lightsteelblue4","Open Ocean"="gray59")) +
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
@@ -97,11 +114,8 @@ p1 <- ggplot(realm_df, aes(x=REALM, y=n, fill=Type)) +
             colour = "black", alpha=0.8, size=3, fontface="bold", inherit.aes = FALSE)
 
 p2 <- ggplot(realm_df) +       
-  geom_col(aes(x=as.factor(id), y=Total, fill=Type), col=NA,width=1.5) + 
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-   #                                                     "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-  #                                                      "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-  #                                                      "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+  geom_col(aes(x=as.factor(id), y = Total, fill=Category), col=NA, width=1.5) + 
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -115,3 +129,4 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/realmbytype_burst.png",scale=2)
+ggsave(file ="Figs/realmbytype_burst.svg",scale=2)

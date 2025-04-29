@@ -8,7 +8,7 @@ main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver
 hs_drivers <- main %>% 
-  distinct() %>% # remove duplicates due to studies occurring in multiple regions
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Condensed_var, sep =", ") %>% 
   mutate_at(vars(Condensed_var), list(factor)) %>%
   filter(Condensed_var != "none") %>% 
@@ -113,6 +113,7 @@ p1 <- ggplot(taxa_df, aes(x=Condensed_var, y=n)) +
 
 p2 <- ggplot(taxa_df) +       
   geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), col=NA,width=1.5) + 
+  scale_fill_brewer(palette = "Set3") +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -131,7 +132,7 @@ ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
 
 #### Make plots for each taxa broken down by driver components
 hs_driver_components <- main %>% 
-  distinct() %>% # remove duplicates due to studies occurring in multiple regions
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
   mutate(Drivers_examined = as.factor(Drivers_examined)) %>% 
@@ -249,6 +250,7 @@ hs_driver_components <- main %>%
                                                        "Predation"),
                                         "Anthropogenic" = c("Fishing", "Production", "Habitat alteration",
                                                             "Shipping", "Pollutants", "Misc human"))) 
+
 
 taxa_list <- hs_driver_components %>% 
   separate_rows(Taxa, sep=",") %>% 

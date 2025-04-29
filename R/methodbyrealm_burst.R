@@ -113,5 +113,6 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/methodsbyrealm_burst.png",scale=2.5)
+ggsave(file ="Figs/methodsbyrealm_burst.svg",scale=2.5)
 
 
