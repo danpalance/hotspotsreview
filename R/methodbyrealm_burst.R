@@ -7,7 +7,13 @@ main <- readRDS("output/main_hs.RDS")
 
 realm_df <- main %>% 
   separate_rows(Methods, sep=", ") %>% 
-  group_by(Methods) %>% 
+  mutate(Methclass = fct_collapse(Methods, 
+                         "Field" = c("Survey", "Fishery", "Biologging", 
+                                     "Acoustics", "Social Survey",
+                                     "Paleontology", "Radar", "Experiment"),
+                         "Non-field" = c("Satellite", "Model", "Lab",
+                                         "Review", "Database"))) %>%
+  group_by(Methods, Methclass) %>% 
   count(REALM) %>% 
   ungroup() %>% 
   group_by(REALM) %>% 
@@ -64,12 +70,9 @@ grid_data$start <- grid_data$start - 1
 
 # Assemble graph 
 # Make the plot reorder(Type, n, sum)
-p1 <- ggplot(realm_df, aes(x=Methods, y=n, fill=REALM)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=REALM), stat="identity") + # need to get Methods ordered and colored by grouping
-  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+p1 <- ggplot(realm_df, aes(x = Methods, y = n, fill = Methclass)) +       
+  geom_bar(aes(x = as.factor(id), y = n, fill = Methclass), stat = "identity", col = "black") + # need to get Methods ordered and colored by grouping
+  scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) +
   
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +

@@ -2,7 +2,6 @@
 library(tidyverse)
 library(cowplot)
 
-
 # Read in the data from the first R script
 main <- readRDS("output/main_hs.RDS")
 
@@ -75,12 +74,9 @@ grid_data$start <- grid_data$start - 1
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(realm_df, aes(x=Taxa2, y=n, fill=REALM)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=REALM), stat="identity") + # need to get taxa ordered and colored by grouping
-  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+p1 <- ggplot(realm_df, aes(x = Taxa2, y = n, fill= Taxa2)) +       
+  geom_bar(aes(x=as.factor(id), y = n, fill = Taxa2), stat = "identity") + # need to get taxa ordered and colored by grouping
+  scale_fill_brewer(palette = "Set3") +
   
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
@@ -124,3 +120,4 @@ ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/taxabyrealm_burst.png",scale=2)
+ggsave(file ="Figs/taxabyrealm_burst.svg",scale=2)
