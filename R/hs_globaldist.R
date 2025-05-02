@@ -53,11 +53,12 @@ meow_realm <- sf::st_as_sf(meow, region = "REALM") # extract a dataframe of the 
 
 ########
 #make spatial polygons for realms
+
 realms <- meow_realm %>% 
   group_by(REALM) %>% 
   summarize(do_union = TRUE) %>% 
   st_wrap_dateline()
-
+  
 # Extract how many hotspots in a given realm #
 meow_shp <- read_sf("data/Marine Ecoregions/",layer="meow_ecos") # read in meow as a shapefile using sf package
 hs_locations_sdf <- st_as_sf(hs_locations, coords = c("Lon", "Lat")) # convert hs_locations to a spatial df
