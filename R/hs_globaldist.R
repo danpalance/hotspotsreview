@@ -100,7 +100,7 @@ hs_types <- hsr_df %>%
   group_by(Type, Category) %>% 
   count(Type) %>% 
   arrange(Category,-n) %>% 
-  mutate(Percentage = (n/291)*100)
+  mutate(Percentage = (n/292)*100)
 saveRDS(hs_types, file ="output/hs_types.rds")
 
 sum(hs_types$n)
