@@ -5,6 +5,7 @@ library(rnaturalearth)
 library(rnaturalearthdata)
 library(sf)
 library(glue)
+library(cowplot)
 
 #### Read in and organize data ####
 # read in the csv as a dataframe
@@ -125,10 +126,11 @@ realm_plot <- ggplot() +
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
         legend.text = element_text(size=28),
-        legend.position = "bottom",
+        legend.position = "none",
         legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
-ggsave(plot=realm_plot,"figs/realm_plot.png",scale=3.3)
+        legend.background = element_rect(fill = "transparent", 
+                                         colour = "transparent"))
+ggsave(plot=realm_plot,"figs/realm_plot.png", scale=3.3, dpi = 600)
 
 global_dist <- ggplot() +
   geom_sf(data=realms, aes(fill=REALM), color="black") +
@@ -143,13 +145,91 @@ global_dist <- ggplot() +
   theme(axis.title = element_blank(),
         legend.title = element_blank(),
         legend.text = element_text(size=24),
-        legend.position = "bottom",
+        legend.position = "none",
         legend.direction = "horizontal",
         legend.background = element_rect(fill = "transparent", colour = "transparent"))
 
 # Add probability density plots for lat-lon
-global_dist_dens <- ggExtra::ggMarginal(global_dist,fill = "black",adjust=0.45,size=12, alpha = 0.75)
-ggsave(plot=global_dist_dens,"figs/global_dist.png",scale=3.3)
+global_dist_dens <- ggExtra::ggMarginal(global_dist,fill = "black",
+                                        adjust=0.45,size=12, alpha = 0.75)
+ggsave(plot=global_dist_dens,"figs/global_dist.png", scale=3.3, dpi = 600)
+ggsave(plot=global_dist_dens,"figs/global_dist.svg", scale=3.3, dpi = 600)
+
+# Create dataframe that sums number of studies per type for the map legend
+realmstudies_df <- main %>% 
+  group_by(REALM) %>% 
+  count(REALM) %>% 
+  arrange(REALM,-n) 
+
+realms_plot <- ggplot(data = realmstudies_df) +
+  geom_bar(aes(x = REALM, y = n, fill = REALM), stat = "identity") +
+  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
+                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
+                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
+                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+  labs(x = "Realm", y = "Number of Studies") +
+  theme_classic() +
+  theme(legend.position="none",
+        axis.text = element_text(size = 12,
+                                 face = "bold", 
+                                 color = "black"), 
+        axis.text.x = element_text(angle = 90, hjust = 1),
+        axis.title = element_text(size = 14,
+                                  face = "bold", 
+                                  color = "black")) +
+  scale_y_continuous(expand = c(0,0)) +
+  coord_flip()
+ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.png", units="in", 
+       height = 6, width = 6, dpi = 600)
+ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.svg", units="in", 
+       height = 6, width = 6, dpi = 600)
+
+
+
+# Make bottom panel bar plot for for different depths
+
+hs_depth <- hsr_df %>% 
+  separate_rows(Depth,sep=",") %>% 
+  drop_na() %>% 
+  count(Depth,Category) 
+
+depth_labels <-c("Surface", "Demersal", "Midwater")
+
+
+depth_plot <- ggplot(data=hs_depth) +
+  geom_bar(aes(x = reorder(Depth, -n), y = n, fill = Category), 
+           width = 0.5, stat = "identity") +
+  labs(x="Depth Zone",y="Number of Studies") +
+  theme_classic() +
+  theme(axis.title = element_blank(),
+        legend.title = element_text(size=14,face="bold"),
+        legend.text = element_text(size=12,face="bold"),
+        legend.position = "inside",
+        legend.position.inside = c(0.65,0.8),
+        legend.background = element_rect(fill = "transparent", colour = "transparent"),
+        axis.text.x = element_text(size=12,face="bold",color="black"),
+        axis.title.x = element_text(size=14,face="bold",color="black"),
+        axis.text.y = element_text(size=12,face="bold",color="black"),
+        axis.title.y = element_text(size=14,face="bold",color="black")) +
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
+  scale_y_continuous(expand=c(0,0)) +
+  scale_x_discrete(labels= depth_labels)
+ggsave(plot=depth_plot,"figs/depth_plot.png", units="in", 
+       height = 6, width = 3.5, dpi = 600)
+ggsave(plot=depth_plot,"figs/depth_plot.svg", units="in", 
+       height = 6, width = 3.5, dpi = 600)
+
+
+# Combine the realms bar graph and depth plot to keep text the same size
+
+bottom_row <- cowplot::plot_grid(realms_plot, depth_plot, ncol = 2,
+                                 rel_widths = c(2,1.1))
+ggsave(plot = bottom_row,"figs/globaldist_bottomrow.png", dpi = 600, 
+       scale = 1.5, width = 8, height = 6)
+ggsave(plot = bottom_row,"figs/globaldist_bottomrow.svg", dpi = 600, 
+       scale = 1.5, width = 8, height = 6)
+
+#### Extra plots to visualize other dimensions of the data ####
 
 # Take a look at depth around the world
 depth_by_location <- hs_locations %>% 
@@ -220,57 +300,6 @@ demersal_depth_plot <- ggExtra::ggMarginal(demersal_depth_plot ,
                                       adjust=0.45,size=12, alpha = 0.75)
 ggsave(plot=demersal_depth_plot,"figs/demersal_depth_plot.png",scale=3.3)
 
-# Make bottom panel bar plot for for different depths
-
-hs_depth <- hsr_df %>% 
-  separate_rows(Depth,sep=",") %>% 
-  drop_na() %>% 
-  count(Depth,Category) #%>% 
- # mutate(Depth=as.factor(Depth))
-
-depth_plot <- ggplot(data=hs_depth) +
-      geom_bar(aes(x=Depth,y=n,fill=Category), width=.95,stat="identity") +
-      labs(x="Depth Zone",y="Number of Studies") +
-      theme_classic() +
-      theme(axis.title = element_blank(),
-            legend.title = element_text(size=14,face="bold"),
-            legend.text = element_text(size=12,face="bold"),
-            legend.position = "inside",
-            legend.position.inside = c(0.8,0.35),
-            legend.background = element_rect(fill = "transparent", colour = "transparent"),
-            axis.text.x = element_text(size=12,face="bold",color="black"),
-            axis.title.x = element_text(size=14,face="bold",color="black"),
-            axis.text.y = element_text(size=12,face="bold",color="black"),
-            axis.title.y = element_text(size=14,face="bold",color="black")) +
-      scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
-      scale_y_continuous(expand=c(0,0)) +
-      coord_flip() 
-ggsave(plot=depth_plot,"figs/depth_plot.png",units="in",height=3.5,width=8)
 
 
-# Create dataframe that sums number of studies per type
-realmstudies_df <- main %>% 
-  group_by(REALM) %>% 
-  count(REALM) %>% 
-  arrange(REALM,-n) 
 
-ggplot(data = realmstudies_df) +
-  geom_bar(aes(x = REALM, y = n, fill = REALM), stat = "identity") +
-  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
-  labs(x = "Realm", y = "Number of Studies") +
-  theme_classic() +
-  theme(legend.position="none",
-        axis.text = element_text(size = 12,
-                                   face = "bold", 
-                                   color = "black"), 
-        axis.text.x = element_text(angle = 90, hjust = 1),
-        axis.title = element_text(size = 14,
-                                  face = "bold", 
-                                  color = "black")) +
-  scale_y_continuous(expand = c(0,0)) +
-  coord_flip()
-ggsave("figs/studiesbyrealm_plot.png", units="in", height = 3.5, width = 8)
-  
