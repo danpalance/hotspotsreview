@@ -162,7 +162,7 @@ realmstudies_df <- main %>%
   arrange(REALM,-n) 
 
 realms_plot <- ggplot(data = realmstudies_df) +
-  geom_bar(aes(x = REALM, y = n, fill = REALM), stat = "identity") +
+  geom_bar(aes(x = reorder(REALM,n), y = n, fill = REALM), stat = "identity") +
   scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
                                                         "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
                                                         "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
