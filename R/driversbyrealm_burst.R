@@ -7,6 +7,7 @@ main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver, this time keep all rows to represent studies that spanned multiple realms
 hs_drivers <- main %>% 
+  filter(Year != "1988") %>% 
   separate_rows(Condensed_var, sep =", ") %>% 
   mutate_at(vars(Condensed_var), list(factor)) %>%
   filter(Condensed_var != "none") %>% 
@@ -143,18 +144,19 @@ ggsave(file ="Figs/driversbyrealm_burst.svg", scale = 2.5)
 
 #### Make plots for each realm broken down by driver components
 hs_driver_components <- main %>% 
+  filter(Year != "1988") %>% 
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
   mutate(Drivers_examined = as.factor(Drivers_examined)) %>% 
   mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
                                              
                                              ## DYNAMIC PHYSICAL ##
-                                             Temperature = c("bottom temperature", "SST", "temperature"),
+                                             Temperature = c("bottom temperature", "SST", "temperature", "heat"),
                                              Circulation = c("currents", "current speed", "current velocity", 
                                                              "downwelling", "NPTZ", "eddies", "EKE", "Ekman transport",
                                                              "gyres", "hydrographic forcing", "surface currents", 
                                                              "tidal current", "tide", "upwelling", "water flow",
-                                                             "rivers"),
+                                                             "rivers", "freshwater input"),
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),
@@ -165,7 +167,8 @@ hs_driver_components <- main %>%
                                                                         "distance to fronts", "distance to iceberg", 
                                                                         "distance to ocean", "distance to plume", 
                                                                         "distance to shelf break", "proximity to estuary", 
-                                                                        "proximity to rivers", "proximity to tidal channels"),
+                                                                        "proximity to rivers", "proximity to tidal channels", "distance to ledges",
+                                                                        "distance to canyons"),
                                              Ice = c("ice", "ice coverage", "icebergs", "glaciers"),
                                              "Sea state" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
                                                              "wave action", "wave exposure", "wave velocity", "waves",

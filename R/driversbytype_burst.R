@@ -7,19 +7,20 @@ main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver
 hs_drivers <- main %>% 
+  filter(Year != "1988") %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Drivers_examined, sep =", ") %>% 
   # mutate_at(vars(Drivers_examined_condensed),list(factor)) %>%
   filter(Drivers_examined != "none") %>% 
-  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, 
+  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
                                              
                                              ## DYNAMIC PHYSICAL ##
-                                             Temperature = c("bottom temperature", "SST", "temperature"),
+                                             Temperature = c("bottom temperature", "SST", "temperature", "heat"),
                                              Circulation = c("currents", "current speed", "current velocity", 
                                                              "downwelling", "NPTZ", "eddies", "EKE", "Ekman transport",
                                                              "gyres", "hydrographic forcing", "surface currents", 
                                                              "tidal current", "tide", "upwelling", "water flow",
-                                                             "rivers"),
+                                                             "rivers", "freshwater input"),
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),
@@ -30,7 +31,8 @@ hs_drivers <- main %>%
                                                                         "distance to fronts", "distance to iceberg", 
                                                                         "distance to ocean", "distance to plume", 
                                                                         "distance to shelf break", "proximity to estuary", 
-                                                                        "proximity to rivers", "proximity to tidal channels"),
+                                                                        "proximity to rivers", "proximity to tidal channels", "distance to ledges",
+                                                                        "distance to canyons"),
                                              Ice = c("ice", "ice coverage", "icebergs", "glaciers"),
                                              "Sea state" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
                                                              "wave action", "wave exposure", "wave velocity", "waves",
@@ -238,19 +240,20 @@ ggsave(file ="Figs/driversbytype_burst.svg",scale=2)
 
 #### Individual Subplots ####
 hs_driver_components <- main %>% 
+  filter(Year != "1988") %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
   mutate(Drivers_examined = as.factor(Drivers_examined)) %>% 
-  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, 
+  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
                                              
                                              ## DYNAMIC PHYSICAL ##
-                                             Temperature = c("bottom temperature", "SST", "temperature"),
+                                             Temperature = c("bottom temperature", "SST", "temperature", "heat"),
                                              Circulation = c("currents", "current speed", "current velocity", 
                                                              "downwelling", "NPTZ", "eddies", "EKE", "Ekman transport",
                                                              "gyres", "hydrographic forcing", "surface currents", 
                                                              "tidal current", "tide", "upwelling", "water flow",
-                                                             "rivers"),
+                                                             "rivers", "freshwater input"),
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),
@@ -261,7 +264,8 @@ hs_driver_components <- main %>%
                                                                         "distance to fronts", "distance to iceberg", 
                                                                         "distance to ocean", "distance to plume", 
                                                                         "distance to shelf break", "proximity to estuary", 
-                                                                        "proximity to rivers", "proximity to tidal channels"),
+                                                                        "proximity to rivers", "proximity to tidal channels", "distance to ledges",
+                                                                        "distance to canyons"),
                                              Ice = c("ice", "ice coverage", "icebergs", "glaciers"),
                                              "Sea state" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
                                                              "wave action", "wave exposure", "wave velocity", "waves",
@@ -355,11 +359,12 @@ hs_driver_components <- main %>%
                                                        "Primary production", "Misc interactions",
                                                        "Predation"),
                                         "Anthropogenic" = c("Fishing", "Production", "Habitat alteration",
-                                                            "Shipping", "Pollutants", "Misc human")),
-         Type = forcats::fct_recode(Type, "Density" = "Abundance/Density")) 
+                                                            "Shipping", "Pollutants", "Misc human"))) 
 
 
-type_list <- hs_driver_components %>% 
+type_list <- hs_driver_components %>%
+  mutate(Type = forcats::fct_recode(Type,
+                                    "Abundance" = "Abundance/Density")) %>%  # change name so it doesn't mess up file directory during saving plot
   separate_rows(Type, sep=",") %>% 
   group_by(Driver_comp, Driver, Type) %>% 
   count(Type) %>% 
@@ -408,7 +413,7 @@ driver_plot <- function(df){
 for (i in 1:length(type_list)){
   temp_df <- type_list[[i]]
   temp_df$Type <- as.character(temp_df$Type)
-  type_name <- temp_df$Type[1] # get the decade name
+  type_name <- temp_df$Type[1] # get the type name
   driver_plot(df = temp_df)
-  ggsave(file = file.path("figs/", paste0(type_name,"_drivers.png")))
+  ggsave(file = file.path("figs", paste0(type_name,"_drivers.png")))
 }

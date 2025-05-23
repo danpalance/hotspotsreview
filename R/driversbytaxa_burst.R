@@ -87,7 +87,7 @@ grid_data$start <- grid_data$start - 1
 # Assemble graph 
 # Make the plot 
 p1 <- ggplot(taxa_df, aes(x=Condensed_var, y=n)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill=Drivercat), stat="identity") + 
+  geom_bar(aes(x=as.factor(id), y=n, fill=Drivercat), stat="identity", color = "black") + 
   scale_fill_manual(values=c("abiotic"="saddlebrown","biotic"="green4", "anthropogenic"="goldenrod")) +
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
@@ -113,7 +113,7 @@ p1 <- ggplot(taxa_df, aes(x=Condensed_var, y=n)) +
             colour = "black", alpha=0.8, size=3.5, fontface="bold", inherit.aes = FALSE)
 
 p2 <- ggplot(taxa_df) +       
-  geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), col=NA,width=1.5) + 
+  geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), col=NA, width=1.5) + 
   scale_fill_brewer(palette = "Set3") +
   coord_polar() +
   theme_minimal() +
@@ -133,6 +133,7 @@ ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
 
 #### Make plots for each taxa broken down by driver components
 hs_driver_components <- main %>% 
+  filter(Year != "1988") %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurring in multiple regions
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
@@ -145,7 +146,7 @@ hs_driver_components <- main %>%
                                                              "downwelling", "NPTZ", "eddies", "EKE", "Ekman transport",
                                                              "gyres", "hydrographic forcing", "surface currents", 
                                                              "tidal current", "tide", "upwelling", "water flow",
-                                                             "rivers", "freshwater"),
+                                                             "rivers", "freshwater input"),
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),

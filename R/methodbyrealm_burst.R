@@ -6,6 +6,7 @@ library(cowplot)
 main <- readRDS("output/main_hs.RDS")
 
 realm_df <- main %>% 
+  filter(Year != "1988") %>% 
   separate_rows(Methods, sep=", ") %>% 
   mutate(Methclass = fct_collapse(Methods, 
                          "Field" = c("Survey", "Fishery", "Biologging", 
@@ -75,10 +76,10 @@ p1 <- ggplot(realm_df, aes(x = Methods, y = n, fill = Methclass)) +
   scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) +
   
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
-  geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 10, xend = start, yend = 10), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 5, xend = start, yend = 5), colour = "grey", alpha=1, size=0.3, inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 10, xend = start, yend = 10), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
+  geom_segment(data=grid_data, aes(x = end, y = 5, xend = start, yend = 5), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
   
   # Add text showing the value of each 100/75/50/25 lines
   #annotate("text", x = rep(max(realm_df$id)-1,5), y = c(0,5, 10, 15, 20), label = c("0","5", "10", "15", "20") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +

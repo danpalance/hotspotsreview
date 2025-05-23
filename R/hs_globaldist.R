@@ -39,7 +39,7 @@ hsr_df$Type <- forcats::fct_collapse(hsr_df$Type,
 # Get all unique lat lons from each study into individual rows 
 hs_locations <- hsr_df %>% 
   separate_rows(c(Lat,Lon), sep =",") %>% 
-  drop_na() # remove the studies that were global (NAs) to make plotting easier
+  drop_na() # remove the studies that were global (NAs) to make plotting easier and the Myers 1988 study
 # fix column data types
 hs_locations$Lat <- as.numeric(hs_locations$Lat)
 hs_locations$Lon <- as.numeric(hs_locations$Lon)

@@ -7,19 +7,19 @@ main <- readRDS("output/main_hs.RDS")
 
 # Make dataframe separating taxa into rows and condensing them into broader categories
 realm_df <- main %>% 
-  #distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
+  filter(Year != "1988",
+         Taxa != "none",
+         Taxa != "many") %>% 
   separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
-                                  "Seabirds"="seabirds",
-                                  "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                                  "Reptiles"=c("sea turtles","sea snake"),
-                                  "Plankton"=c("microalgae","nekton","plankton"),
-                                  "Krill"="krill",
-                                  "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
-                                  "Plants & Seaweed"=c("macroalgae","plants"),
-                                  "Microbes"="microbes",
-                                  "Misc"="many",
-                                  "None"="none")) %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes")) %>% 
   group_by(Taxa2) %>% 
   count(REALM) %>% 
   ungroup() %>% 
@@ -75,7 +75,7 @@ grid_data$start <- grid_data$start - 1
 # Assemble graph 
 # Make the plot 
 p1 <- ggplot(realm_df, aes(x = Taxa2, y = n, fill= Taxa2)) +       
-  geom_bar(aes(x=as.factor(id), y = n, fill = Taxa2), stat = "identity") + # need to get taxa ordered and colored by grouping
+  geom_bar(aes(x=as.factor(id), y = n, fill = Taxa2), stat = "identity", colour = "black") + 
   scale_fill_brewer(palette = "Set3") +
   
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
