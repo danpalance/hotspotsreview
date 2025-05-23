@@ -21,24 +21,25 @@ hs_drivers <- main %>%
 # Make dataframe seprating Taxa and hotspot drivers into rows and condensing them into broader categories
 taxa_df <- hs_drivers %>% 
   separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+  filter(Taxa != "many") %>% # remove the one study where it was not possible to delineate taxa (Moran and Kanemoto 2007)
+  filter(Taxa != "none") %>% # remove studies that didn't look at taxa
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
                               "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
                               "Plankton"=c("microalgae","nekton","plankton"),
                               "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
                               "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
+                              "Microbes"="microbes")) %>% 
   group_by(Condensed_var, Drivercat, Taxa2) %>% 
   count(Taxa2) %>% 
   ungroup() %>% 
   group_by(Taxa2) %>% 
   mutate(Total=sum(n)) %>% 
   ungroup() %>% 
-  mutate(Taxa2 = as.factor(Taxa2))
+  mutate(Taxa2 = as.factor(Taxa2)) 
+  
 
 
 # Setup empty bar spacers between realms
@@ -139,12 +140,12 @@ hs_driver_components <- main %>%
   mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
                                              
                                              ## DYNAMIC PHYSICAL ##
-                                             Temperature = c("bottom temperature", "SST", "temperature"),
+                                             Temperature = c("bottom temperature", "SST", "temperature", "heat"),
                                              Circulation = c("currents", "current speed", "current velocity", 
                                                              "downwelling", "NPTZ", "eddies", "EKE", "Ekman transport",
                                                              "gyres", "hydrographic forcing", "surface currents", 
                                                              "tidal current", "tide", "upwelling", "water flow",
-                                                             "rivers"),
+                                                             "rivers", "freshwater"),
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),
@@ -155,7 +156,8 @@ hs_driver_components <- main %>%
                                                                         "distance to fronts", "distance to iceberg", 
                                                                         "distance to ocean", "distance to plume", 
                                                                         "distance to shelf break", "proximity to estuary", 
-                                                                        "proximity to rivers", "proximity to tidal channels"),
+                                                                        "proximity to rivers", "proximity to tidal channels", "distance to ledges",
+                                                                        "distance to canyons"),
                                              Ice = c("ice", "ice coverage", "icebergs", "glaciers"),
                                              "Sea state" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
                                                              "wave action", "wave exposure", "wave velocity", "waves",
@@ -254,17 +256,17 @@ hs_driver_components <- main %>%
 
 taxa_list <- hs_driver_components %>% 
   separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+  filter(Taxa != "many") %>% # remove the one study where it was not possible to delineate taxa (Moran and Kanemoto 2007)
+  filter(Taxa != "none") %>% # remove studies that didn't look at taxa
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
                               "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
                               "Plankton"=c("microalgae","nekton","plankton"),
                               "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
                               "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
+                              "Microbes"="microbes")) %>% 
   group_by(Driver_comp, Driver, Taxa2) %>% 
   count(Taxa2) %>% 
   ungroup() %>% 
@@ -316,61 +318,3 @@ for (i in 1:length(taxa_list)){
   driver_plot(df = temp_df)
   ggsave(file = file.path("figs/", paste0(taxa_name,"_drivers.png")))
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- #### heatmap dataframe and plot ####
-heatmap_df <- hs_drivers %>% 
-  separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
-                              "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
-                              "Plankton"=c("microalgae","nekton","plankton"),
-                              "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
-                              "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
-  group_by(Condensed_var, Drivercat, Taxa2) %>% 
-  count(Taxa2) %>% 
-  ungroup() %>% 
-  group_by(Condensed_var) %>% 
-  mutate(Total=sum(n)) %>% 
-  ungroup() %>% 
-  mutate(Taxa2 = as.factor(Taxa2),
-         Percent = n/Total * 100,
-         Condensed_var = str_to_title(Condensed_var)) # captialize first letter like to match taxa
-
-# make the plot
-ggplot(heatmap_df, aes(x = Taxa2, y = Condensed_var, fill = Percent)) +
-  geom_tile(color = "black") +
-  scale_fill_gradient(low = "white", high = "skyblue", name = "% of Studies",
-                      guide = guide_colorbar(frame.colour = "gray", ticks.colour = "black")) +
-  labs(x = "Taxa", y = "Driver") +
-  geom_text(aes(x = Taxa2, y = Condensed_var, label = n)) +
-  theme_classic() +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1),
-        axis.text = element_text(face = "bold",
-                                  size = 12),
-        axis.title = element_text(face = "bold",
-                                 size = 14),
-        legend.text = element_text(face = "bold",
-                                   size = 12),
-        legend.title = element_text(face = "bold",
-                                    size = 14)) +
-  scale_x_discrete(expand = c(0,0)) +
-  scale_y_discrete(expand = c(0,0)) 
-ggsave(file ="figs/driversbytaxa_percheatmap.png", scale = 1.5)
