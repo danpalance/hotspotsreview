@@ -5,13 +5,13 @@ library(tidyverse)
 main <- readRDS("output/main_hs.RDS") %>% distinct(Title, .keep_all = TRUE) 
 
 type_perc <- main %>% 
+  filter(Year!="1988") %>% 
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
   group_by(Type) %>% 
   count() %>% 
   mutate(Type_perc = (n/nrow(main) * 100))
 
 # count number of studies that looked at persistence
-# NOte Moreno & Matthews doesn't currently have a Y for persistence but they 
-# did actually look at it, so add 1 to the total
 table(main$Persistence)
 pers_studs <- main %>% 
   filter(Persistence == "Y")
@@ -22,14 +22,14 @@ pers_realms <- main %>%
   group_by(REALM) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/36)*100)
+  mutate(Percentage = (n/40)*100)
   
 methods_df <- main %>% 
   separate_rows(Methods, sep=", ") %>% 
   group_by(Methods) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/291)*100)
+  mutate(Percentage = (n/301)*100)
 
 
 categories_df <- main %>% 
@@ -38,81 +38,95 @@ categories_df <- main %>%
 
 eco_subset <- main %>% 
   filter(Year >= 2000 & Year < 2010,
-         Category == "Ecoimpact")
+         Category == "Ecological Impact")
 
 realm_df <- main %>% 
   separate_rows(REALM, sep=", ") %>% 
   group_by(REALM) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/291)*100)
+  mutate(Percentage = (n/296)*100)
+
+type_realmcat <- main %>% 
+  separate_rows(REALM, sep=", ") %>% 
+  group_by(REALM,Category) %>% 
+  count(Category) %>% 
+  ungroup() 
 
 depth_df <- main %>% 
   separate_rows(Depth, sep=",") %>% 
   group_by(Depth) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/291)*100)
+  mutate(Percentage = (n/296)*100)
 
 
 taxa_df <- main %>% 
-  separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
-                              "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
-                              "Plankton"=c("microalgae","nekton","plankton"),
-                              "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
-                              "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
-  group_by(Taxa2) %>% 
-  count() %>% 
-  ungroup() %>% 
-  mutate(Percentage = (n/291)*100)
-
-taxacat_df <- main %>% 
-  separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
-                              "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
-                              "Plankton"=c("microalgae","nekton","plankton"),
-                              "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
-                              "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
-  group_by(Taxa2, Category) %>% 
-  count() 
-
-ecotax_tot <- taxacat_df %>% 
-  filter(Category == "Ecoimpact") %>% 
-  mutate(Percentage = (n/85)*100)
-
-bptax_tot <- taxacat_df %>% 
-  filter(Category == "Biophysical") %>% 
-  mutate(Percentage = (n/198)*100)
-
-
-taxatype_df <- main %>% 
+  filter(Taxa != "many") %>% 
+  filter(Taxa != "none") %>% 
   filter(Year!="1988") %>% 
   distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
   separate_rows(Taxa, sep=",") %>% 
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish"),
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
                               "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars"),
-                              "Reptiles"=c("sea turtles","sea snake"),
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
                               "Plankton"=c("microalgae","nekton","plankton"),
                               "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins"),
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
                               "Plants & Seaweed"=c("macroalgae","plants"),
-                              "Microbes"="microbes",
-                              "Misc"="many",
-                              "None"="none")) %>% 
+                              "Microbes"="microbes")) %>% 
+  group_by(Taxa2) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(Percentage = (n/268)*100) # 268 is total number of studies that had specific taxa
+
+taxacat_df <- main %>% 
+  filter(Taxa != "many") %>% 
+  filter(Taxa != "none") %>% 
+  filter(Year!="1988") %>% 
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
+  separate_rows(Taxa, sep=",") %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes")) %>% 
+  group_by(Taxa2, Category) %>% 
+  count() %>% 
+  ungroup()  
+
+
+
+
+ecoimptax_tot <- taxacat_df %>% 
+  filter(Category == "Ecological Impact") %>% 
+  mutate(Percentage = (n/83)*100) # 85 is number of ecoimpact studies
+
+biophystax_tot <- taxacat_df %>% 
+  filter(Category == "Biophysical") %>% 
+  mutate(Percentage = (n/205)*100)
+
+
+taxatype_df <- main %>% 
+  filter(Taxa != "many") %>% 
+  filter(Taxa != "none") %>% 
+  filter(Year!="1988") %>% 
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
+  separate_rows(Taxa, sep=",") %>% 
+  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
+                              "Seabirds"="seabirds",
+                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
+                              "Plankton"=c("microalgae","nekton","plankton"),
+                              "Krill"="krill",
+                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
+                              "Plants & Seaweed"=c("macroalgae","plants"),
+                              "Microbes"="microbes")) %>% 
   group_by(Taxa2, Type, Category) %>% 
   count(Type) %>% 
   ungroup() %>% 
@@ -121,38 +135,3 @@ taxatype_df <- main %>%
   ungroup() %>% 
   mutate(Type = as.factor(Type),
          Percentage = (n/Total)*100)
-
-
-# Create a dataframe with rows for each driver
-hs_drivers <- main %>% 
-  #distinct() %>% # remove duplicates due to studies occurring in multiple regions
-  separate_rows(Drivers_examined_condensed, sep =", ") %>% 
-  mutate_at(vars(Drivers_examined_condensed),list(factor)) %>%
-  mutate(Drivers = forcats::fct_collapse(Drivers_examined_condensed,
-                                         "bathy & topo" = c("bathymetry","topography"),
-                                         "climate & hydrology" = c("climate","hydrology"))) %>% 
-  filter(Drivers != "none") %>% 
-  mutate(Drivercat = forcats::fct_collapse(Drivers,
-                                           abiotic=c("bathy & topo","circulation",
-                                                     "distance to physical features",
-                                                     "fronts", "habitat","climate & hydrology",
-                                                     "water biogeochemistry","pollution","salinity",
-                                                     "temperature"),
-                                           biotic = c("primary productivity","biodiversity",
-                                                      "species attributes"),
-                                           anthropogenic = c("human activity","fishing","shipping","pollution")))
-
-
-
-# Make dataframe seprating Type and hotspot type into rows and condensing them into broader categories
-drivers_df <- hs_drivers %>% 
-  separate_rows(Type, sep=",") %>% 
-  group_by(Drivers) %>% 
-  count()
-
-eddies <- main %>% 
-  separate_rows(Drivers_examined, sep =", ") %>% 
-  group_by(Drivers_examined) %>% 
-  count()
-
-  

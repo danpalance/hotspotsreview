@@ -19,7 +19,8 @@ colnames(hs_data) <- c("Authors","Year","Methods","Title","Def_clarity","Type",
 
 # Remove these two types since they're too new to define well
 hsr_df <- hs_data %>% 
-  filter(Type != "Metabolic Production" & Type != "Socio-ecological") 
+  filter(Type != "Metabolic Production" & Type != "Socio-ecological") %>% 
+  filter(Year != 1988)
 
 # Organize the types by three broad categories: Biophysical, Anthropogenic, and
 # Ecoimpact using the forcat package in tidyverse
@@ -28,7 +29,7 @@ hsr_df$Category <- forcats::fct_collapse(hsr_df$Type,
                                                        "Abundance/Density","Diversity & Endemism",
                                                        "Freq of Occurence","Reproduction & Recruitment","Mortality"),
                                          Anthropogenic = c("Pollution"),
-                                         Ecoimpact = c("Invasives", "Eutrophication & Acidification",
+                                         "Ecological Impact" = c("Invasives", "Eutrophication & Acidification",
                                                        "Fisheries & Bycatch","Multi-Risk & Threat",
                                                        "Bioaccumulation","Warming"))
 
@@ -96,21 +97,31 @@ main <- as.data.frame(meow_hs) %>%
 saveRDS(main, file ="output/main_hs.RDS")
 #main <- readRDS(file ="output/main_hs.RDS")
 
+# figure out how many studies spanned multiple realms, open ocean, or global
+multi_realm <- main %>% 
+  distinct(Title, keep_all = TRUE)
+308-297
+
+open_ocean <- main %>% 
+  filter(REALM == "Open Ocean")
+
+global <- main %>% 
+  filter(REALM =="Global")
+
 # Create dataframe that sums number of studies per type
-hs_types <- hsr_df %>% 
+hs_types <- main %>% 
+  filter(Year!="1988") %>% 
+  distinct(Title, .keep_all = TRUE) %>% # remove duplicates from multirealm studies
   group_by(Type, Category) %>% 
   count(Type) %>% 
   arrange(Category,-n) %>% 
-  mutate(Percentage = (n/292)*100)
+  mutate(Percentage = (n/296)*100)
 saveRDS(hs_types, file ="output/hs_types.rds")
 
-sum(hs_types$n)
-
-hs_loc_count <- main %>% 
-  group_by(Title) %>% 
-  count() %>% 
-  filter(n >1)
-
+hs_cats <- hs_types %>% 
+  group_by(Category) %>% 
+  summarize(Total = sum(n),
+            Percent = Total/296)
 
 # Figure 1: Create hotspot map of # of studies by realm and add density plots of # of studies by lat and lon on sides ------
 realm_plot <- ggplot() +
@@ -159,6 +170,7 @@ ggsave(plot=global_dist_dens,"figs/global_dist.svg", scale=3.3, dpi = 600)
 realmstudies_df <- main %>% 
   group_by(REALM) %>% 
   count(REALM) %>% 
+  mutate(Percent = (n/296)*100) %>% 
   arrange(REALM,-n) 
 
 realms_plot <- ggplot(data = realmstudies_df) +
@@ -187,10 +199,17 @@ ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.svg", units="in",
 
 
 # Make bottom panel bar plot for for different depths
-
-hs_depth <- hsr_df %>% 
-  separate_rows(Depth,sep=",") %>% 
+depth_summary <- main %>% 
+  separate_rows(Depth, sep=",") %>% 
   drop_na() %>% 
+  group_by(Depth) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(Percent = n/296)
+
+hs_depth <- main %>% 
+  separate_rows(Depth,sep=",") %>% 
+  drop_na() %>% # remove Myers study
   count(Depth,Category) 
 
 depth_labels <-c("Surface", "Demersal", "Midwater")
@@ -211,7 +230,7 @@ depth_plot <- ggplot(data=hs_depth) +
         axis.title.x = element_text(size=14,face="bold",color="black"),
         axis.text.y = element_text(size=12,face="bold",color="black"),
         axis.title.y = element_text(size=14,face="bold",color="black")) +
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   scale_y_continuous(expand=c(0,0)) +
   scale_x_discrete(labels= depth_labels)
 ggsave(plot=depth_plot,"figs/depth_plot.png", units="in", 

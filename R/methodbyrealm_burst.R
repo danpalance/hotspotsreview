@@ -22,6 +22,12 @@ realm_df <- main %>%
   ungroup() %>% 
   mutate(REALM = as.factor(REALM))
 
+realm_stats <- main %>% 
+  filter(Year!="1988") %>% 
+  group_by(REALM,Type) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(Percent = (n/296)*100)
 
 
 # Setup empty bar spacers between realms

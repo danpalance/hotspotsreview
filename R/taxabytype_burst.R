@@ -35,7 +35,7 @@ taxa_tot_percentage <- taxa_df %>%
   select(Taxa2, n) %>% 
   group_by(Taxa2) %>% 
   summarize(Taxtot = sum(n),
-            Taxper = Taxtot/268) # 268 is the total number of studies that looked at taxa (excludes none and many)
+            Taxper = Taxtot/296) # 268 is the total number of studies that looked at taxa (excludes none and many)
 
 taxa_type_percentage <- taxa_df %>% 
   select(Taxa2, n, Type, Category) %>% 
@@ -45,8 +45,8 @@ taxa_type_percentage <- taxa_df %>%
   ungroup() %>%
   #Reorder the type factor for the plot by category
   mutate(Type = factor(Type,
-                       levels = c("Warming", "Threat",
-                                  "Mortality", "Invasive Species", "Fisheries", "Water Chemistry",
+                       levels = c("Water Chemistry", "Warming", "Threat",
+                                  "Mortality", "Invasive Species", "Fisheries",
                                   "Bioaccumulation", "Reproduction & Recruitment",
                                   "Nutrients & Biogeochemical-Cycling", "Habitat",
                                   "Foraging", "Biodiversity & Endemism", "Abundance/Density"),
@@ -66,7 +66,7 @@ ggplot() +
         axis.title = element_text(face = "bold",
                                   size = 16),
         legend.position = "top",
-        legend.text = element_text(size = 14,
+        legend.text = element_text(size = 20,
                                    face = "bold"),
         legend.title = element_text(size = 16,
                                     face = "bold")) +

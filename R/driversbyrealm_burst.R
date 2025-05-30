@@ -1,6 +1,7 @@
 # This code creates the starburst figure by realm for Taxa (figure X) in the hotspot manuscript
 library(tidyverse)
 library(cowplot)
+library(patchwork)
 
 # Read in the main dataframe created in earlier code
 main <- readRDS(file ="output/main_hs.RDS")
@@ -14,33 +15,18 @@ hs_drivers <- main %>%
   mutate(Drivercat = forcats::fct_collapse(Condensed_var,
                                            abiotic = c("dynamic physical", "static physical"),
                                            biotic = c("ecological", "species attributes", "biogeochem"),
-                                           anthropogenic = c("human activity"))) 
-# circulation <- hs_drivers %>% 
-#   filter(Driver == "Circulation")
-# eddies <- main %>% filter(grepl(pattern = "eddies", Drivers_examined))
-
-# hs_driver_comps <- main %>% 
-#   separate_rows(Drivers_examined, sep =", ") %>% 
-#   separate_rows(Drivers_examined, sep =",") %>% 
-#   group_by(Drivers_examined) %>% 
-#   count()
-# 
-# ggplot(hs_driver_comps) +
-#   geom_bar(aes(x = Drivers_examined)) +
-#   labs(x = "Driver component", y = "# of Studies") +
-#   theme_classic() +
-#   scale_y_continuous(expand = c(0,0)) +
-#   theme(axis.text.x = element_text(angle = 90))
-#   
-# 
-# unique(hs_driver_comps$Drivers_examined)
-
-
+                                           anthropogenic = c("human activity"))) %>% 
+  mutate(Covars = forcats::fct_recode(Condensed_var, "Dynamic Physical" = "dynamic physical",
+                                      "Static Physical" = "static physical",
+                                      "Ecological" = "ecological",
+                                      "Species Attributes" = "species attributes",
+                                      "Biogeochem" = "biogeochem",
+                                      "Human Activity" = "human activity"))
 
 # Make dataframe seprating Taxa and hotspot drivers into rows and condensing them into broader categories
 realm_df <- hs_drivers %>% 
   separate_rows(REALM, sep=",") %>% 
-  group_by(Condensed_var, Drivercat, REALM) %>% 
+  group_by(Covars, Drivercat, REALM) %>% 
   count(REALM) %>% 
   ungroup() %>% 
   group_by(REALM) %>% 
@@ -93,7 +79,7 @@ grid_data <- grid_data[-13,] # remove the scale bars for the area where the scal
 
 # Assemble graph 
 # Make the plot 
-p1 <- ggplot(realm_df, aes(x = Condensed_var, y=n)) +       
+p1 <- ggplot(realm_df, aes(x = Covars, y=n)) +       
   geom_bar(aes(x = as.factor(id), y=n, fill = Drivercat), stat="identity") + 
   scale_fill_manual(values=c("abiotic"="saddlebrown","biotic"="green4", "anthropogenic"="goldenrod")) +
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
@@ -112,7 +98,7 @@ p1 <- ggplot(realm_df, aes(x = Condensed_var, y=n)) +
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) +
   coord_polar() + 
-  geom_text(data=label_data, aes(x=id, y=n+10, label= Condensed_var, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=3.5, angle=label_data$angle, inherit.aes = FALSE ) +
+  geom_text(data=label_data, aes(x=id, y=n+10, label= Covars, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=3.5, angle=label_data$angle, inherit.aes = FALSE ) +
   
   # Add base line information
   geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, linewidth=0.6 , inherit.aes = FALSE )  +
@@ -148,8 +134,7 @@ hs_driver_components <- main %>%
   separate_rows(Drivers_examined, sep =", ")  %>% 
   filter(Drivers_examined != "none") %>% 
   mutate(Drivers_examined = as.factor(Drivers_examined)) %>% 
-  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
-                                             
+  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, 
                                              ## DYNAMIC PHYSICAL ##
                                              Temperature = c("bottom temperature", "SST", "temperature", "heat"),
                                              Circulation = c("currents", "current speed", "current velocity", 
@@ -160,7 +145,7 @@ hs_driver_components <- main %>%
                                              Atmospheric = c("climate", "hydrology", "La Niña", "cloud coverage", 
                                                              "precipitation", "pressure", "El Niño", "ENSO", "PDO", 
                                                              "storms","shear stress", "wind", "wind speed", "wind stress"),
-                                             "Distance to features" = c("distance from edge of slope", "distance from estuary mouth", 
+                                             "Distance to Features" = c("distance from edge of slope", "distance from estuary mouth", 
                                                                         "distance from shelf break", "distance from shore", 
                                                                         "distance to coast", "distance to continental slope", 
                                                                         "distance to eddies", "distance to estuary mouth", 
@@ -170,60 +155,60 @@ hs_driver_components <- main %>%
                                                                         "proximity to rivers", "proximity to tidal channels", "distance to ledges",
                                                                         "distance to canyons"),
                                              Ice = c("ice", "ice coverage", "icebergs", "glaciers"),
-                                             "Sea state" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
+                                             "Sea State" = c("dynamic height", "sea level anomaly", "SSH", "SSHA", "swell",
                                                              "wave action", "wave exposure", "wave velocity", "waves",
                                                              "tsunamis", "fetch"),
-                                             "Water column structure" = c("Gulfstream North Wall", "fronts", 
+                                             "Water Column Structure" = c("Gulfstream North Wall", "fronts", 
                                                                           "mixed layer thickness", "mixing", "mixing line", 
                                                                           "isothermality", "mixed layer depth", "pycnocline depth", 
                                                                           "stratification", "thermal stratification", "density","turbidity"),
-                                             "Misc dyphys" = c("day length", "light", "moon illuminance", "gravitational sinking", 
+                                             "Misc Dyphys" = c("day length", "light", "moon illuminance", "gravitational sinking", 
                                                                "island mass effect", "protrusion of surf zone", 
                                                                "tectonic events"),
                                              
                                              ## STATIC PHYSICAL - RENAME TO BATHY & TOPO ##
-                                             "General bathy/topo" = c("bathymetry", "depth", "bottom depth", 
+                                             "General Bathy/topo" = c("bathymetry", "depth", "bottom depth", 
                                                                       "topography", "land area", "continental width", 
                                                                       "islands"),
-                                             "Seabed characteristics" = c("ridges", "roughness", "rugosity", "seabed composition",
+                                             "Seabed Characteristics" = c("ridges", "roughness", "rugosity", "seabed composition",
                                                                           "slope", "substrate", "sediment grain size", "aspect",
                                                                           "bottom type", "wood debris"),
-                                             "Bathy structures" = c("banks", "canyons", "fjords", "guyots", "seamounts", 
+                                             "Bathy Structures" = c("banks", "canyons", "fjords", "guyots", "seamounts", 
                                                                     "shelf break", "shelfs"),
                                              
                                              ## BIOGEOCHEM ##
                                              Nutrients = c("nitrate", "nitrogen", "nutrients", "silica", "silicate", 
                                                            "silicon", "phosphate", "phosphorous", "pCO2", 
                                                            "nitrogen fixation"),
-                                             "Carbon cycle" = c("carbon cycling", "particulate organic carbon", 
+                                             "Carbon Cycle" = c("carbon cycling", "particulate organic carbon", 
                                                                 "sediment organic content", "DIC", "PIC", "POC"),
-                                             "Oxygen & acidifcation" = c("dissolved oxygen", "DO", "alkalinity", "aragonite saturation", 
+                                             "Oxygen & Acidifcation" = c("dissolved oxygen", "DO", "alkalinity", "aragonite saturation", 
                                                                          "conductivity", "dissolution", "pH", "salinity", "oxygen", 
                                                                          "oxygen saturation"),
                                              
                                              
                                              ## SPECIES ATTRIBUTES ##
-                                             "Life history" = c("dispersal mechanisms", "life history", "life stage",
+                                             "Life History" = c("dispersal mechanisms", "life history", "life stage",
                                                                 "reproduction rate", "wean mass", "prey recruitment"),
-                                             "Physio & morph" = c("enzymatic responses", "phytoplankton fluorescence", 
+                                             "Physio & Morph" = c("enzymatic responses", "phytoplankton fluorescence", 
                                                                   "animal sensitivity", "body length", "body shape", "diet",
                                                                   "prey size", "heat wave stress"),
                                              Behavior = c("behavior", "migratory behavior", "DVM", "social cues"),
                                              Demography = c("population size", "range size", "prey mortality", "social group size"),
-                                             "Misc spp" = c("taxonomic group"), # Is this really a driver component?
+                                             "Misc Spp" = c("taxonomic group"), # Is this really a driver component?
                                              
                                              
                                              ## ECOLOGICAL ##
-                                             "Habitat components" = c("habitat", "habitat complexity", "habitat quality", 
+                                             "Habitat Components" = c("habitat", "habitat complexity", "habitat quality", 
                                                                       "habitat type", "adult cover", "canopy height", "reef area", 
                                                                       "reef structure", "rhizome layer depth", "prey habitat", "habitat structure"),
-                                             "Community composition" = c("biodiversity", "community composition", "taxa", 
+                                             "Community Composition" = c("biodiversity", "community composition", "taxa", 
                                                                          "species composition", "ecological niche", 
                                                                          "relative nekton density-distribution"),
-                                             "Primary production" = c("chl-a", "chlorophyll", "phytoplankton", 
+                                             "Primary Production" = c("chl-a", "chlorophyll", "phytoplankton", 
                                                                       "phytoplankton biomass", "primary productivity", 
                                                                       "productivity", "proximity to phytoplankton"),
-                                             "Misc interactions" = c("intraspecific interactions", "disease"), 
+                                             "Misc Interactions" = c("intraspecific interactions", "disease"), 
                                              Predation = c("predator abundance", "predator density", "predators", 
                                                            "prey abundance", "prey biomass", "prey density", 
                                                            "prey distribution", "prey type", "trophic category", 
@@ -235,7 +220,7 @@ hs_driver_components <- main %>%
                                                          "live trade", "trawl depth"),
                                              Production = c("agriculture", "desalinization", 
                                                             "industry", "reclamation"),
-                                             "Habitat alteration" = c("biofouling", "deforestation", 
+                                             "Habitat Alteration" = c("biofouling", "deforestation", 
                                                                       "dredging", "climate change", "climate velocity"),
                                              Shipping = c("vessel track", "vessel type", "ship breaking", "shipping", 
                                                           "shipwrecks", "ballast water","proximity to ports", 
@@ -246,23 +231,23 @@ hs_driver_components <- main %>%
                                                             "litter", "metal pollution", "noise", "oil pollution", 
                                                             "oil release rates", "PCB exposure", "plastic density", 
                                                             "pollution"),
-                                             "Misc human" = c("city", "consumer demand", "human activity", 
+                                             "Misc Human" = c("city", "consumer demand", "human activity", 
                                                               "human impact", "human population", 
                                                               "proximity to urban areas", "threat type", "tourism"))) %>% 
   mutate(Driver = forcats::fct_collapse(Driver_comp,
-                                        "Dynamic physical" = c("Temperature", "Circulation", "Atmospheric",
-                                                               "Distance to features", "Ice", "Sea state", "Water column structure",
-                                                               "Misc dyphys"),
-                                        "Bathy & topo" = c("General bathy/topo", "Seabed characteristics",
-                                                           "Bathy structures"),
-                                        Biogeochem = c("Nutrients", "Carbon cycle", "Oxygen & acidifcation"),
-                                        "Species attributes" = c("Life history", "Physio & morph",
-                                                                 "Behavior", "Demography", "Misc spp"),
-                                        Ecological = c("Habitat components", "Community composition",
-                                                       "Primary production", "Misc interactions",
+                                        "Dynamic Physical" = c("Temperature", "Circulation", "Atmospheric",
+                                                               "Distance to Features", "Ice", "Sea State", "Water Column Structure",
+                                                               "Misc Dyphys"),
+                                        "Bathy & Topo" = c("General Bathy/topo", "Seabed Characteristics",
+                                                           "Bathy Structures"),
+                                        Biogeochem = c("Nutrients", "Carbon Cycle", "Oxygen & Acidifcation"),
+                                        "Species Attributes" = c("Life History", "Physio & Morph",
+                                                                 "Behavior", "Demography", "Misc Spp"),
+                                        Ecological = c("Habitat Components", "Community Composition",
+                                                       "Primary Production", "Misc Interactions",
                                                        "Predation"),
-                                        "Anthropogenic" = c("Fishing", "Production", "Habitat alteration",
-                                                            "Shipping", "Pollutants", "Misc human"))) 
+                                        "Anthropogenic" = c("Fishing", "Production", "Habitat Alteration",
+                                                            "Shipping", "Pollutants", "Misc Human"))) 
 
 realm_list <- hs_driver_components %>% 
   separate_rows(REALM, sep=",") %>% 
@@ -286,14 +271,15 @@ driver_plot <- function(df){
                                  "Biogeochem" = "aquamarine",
                                  "Species attributes" = "orchid",
                                  "Anthropogenic" = "yellow"),
-                      name = "Indicator/Covariate\n Category") + # LEFT OFF HERE, NEED TO FINISH THIS LINE AND GET THE ORDER OF BARS IN DESCENDING
-    scale_y_continuous(expand = c(0,0),
-                       limits = c(0,35)) +
+                      name = "Indicator/Covariate\n Category") + 
+    # scale_y_continuous(expand = c(0,0),
+    #                    limits = c(0,35)) +
+    scale_y_continuous(expand = expansion(mult = c(0,.1))) + #create continouos y scale and set relative expansion
     theme_classic() +
     labs(x = "Indicator/Covariate Component", y = "% of Studies", title = df$REALM[1]) +
     theme(plot.title = element_text(face = "bold",
                                     size = 16,
-                                    hjust = 1.5),
+                                    hjust = 0.5),
           axis.text = element_text(face = "bold",
                                    size = 12),
           axis.title = element_text(face = "bold",
@@ -301,20 +287,97 @@ driver_plot <- function(df){
           legend.position = "inside",
           legend.position.inside = c(0.6,0.15),
           legend.text = element_text(face = "bold",
-                                     size = 10),
+                                     size = 12),
           legend.title = element_text(face = "bold",
-                                      size = 12,
-                                      hjust = 0.5)) +
+                                      size = 14,
+                                      hjust = 0.5),
+          panel.background = element_rect(fill = 'transparent'),
+          plot.background = element_rect(fill = 'transparent',
+                                         color = NA)
+          ) +
     coord_flip()
 }
 
 # Now build and export the plots by taxa in a loop
-for (i in 1:length(realm_list)){
-  temp_df <- realm_list[[i]]
-  temp_df$REALM <- as.character(temp_df$REALM)
-  realm_name <- temp_df$REALM[1] # get the decade name
-  driver_plot(df = temp_df)
-  ggsave(file = file.path("figs/", paste0(realm_name,"_drivers.png")))
-}
+# for (i in 1:length(realm_list)){
+#   temp_df <- realm_list[[i]]
+#   temp_df$REALM <- as.character(temp_df$REALM)
+#   realm_name <- temp_df$REALM[1] # get the decade name
+#   driver_plot(df = temp_df)
+#   ggsave(file = file.path("figs/", paste0(realm_name,"_drivers.png")))
+# }
 
+# Make and group plots into a list 
+realmcomp_plots <- lapply(realm_list, driver_plot)
 
+# Save plots in a grid, 4 to a page
+realmcomp_plots1 <- cowplot::plot_grid(realmcomp_plots[[1]], realmcomp_plots[[2]],
+         realmcomp_plots[[3]], realmcomp_plots[[4]],
+         labels = c('A)', 'B)', 'C)', 'D)'),
+         label_size = 18,
+         label_fontface = "bold",
+         align="hv") 
+ggsave(plot = realmcomp_plots1,"figs/realmcomp_plots1.png", dpi = 600, 
+       width = 7.5, height = 7.5, scale = 2)
+
+realmcomp_plots2 <- cowplot::plot_grid(realmcomp_plots[[5]], realmcomp_plots[[6]],
+          realmcomp_plots[[7]], realmcomp_plots[[8]],
+          labels = c('E)', 'F)', 'G)', 'H)'),
+          label_size = 18,
+          label_fontface = "bold",
+          align="hv")
+ggsave(plot = realmcomp_plots2,"figs/realmcomp_plots2.png", dpi = 600, 
+       width = 7.5, height = 7.5, scale = 2)
+
+realmcomp_plots3 <- cowplot::plot_grid(realmcomp_plots[[9]], realmcomp_plots[[10]],
+                     realmcomp_plots[[11]], realmcomp_plots[[12]],
+                     labels = c('I)', 'J)', 'K)', 'L)'),
+                     label_size = 18,
+                     label_fontface = "bold",
+                     align="hv")
+ggsave(plot = realmcomp_plots3,"figs/realmcomp_plots3.png", dpi = 600, 
+       width = 7.5, height = 7.5, scale = 2)
+
+realmcomp_plots4 <- cowplot::plot_grid(realmcomp_plots[[13]], realmcomp_plots[[14]],
+                                       NULL, NULL, # put dummy plots in bottom row to keep dimensions same
+                                       labels = c('M)', 'N)'),
+                                       label_size = 18,
+                                       label_fontface = "bold",
+                                       align="hv")
+ggsave(plot = realmcomp_plots4,"figs/realmcomp_plots4.png", dpi = 600, 
+       width = 7.5, height = 7.5, scale = 2)
+
+# for(i in 1:4){
+#   print(ggplot(data = realm_list) +
+#           geom_bar(aes(x = Driver_comp, y = Percent, fill = Driver), col = "black", stat = "identity") +
+#           scale_fill_manual(values = c("Ecological" = "coral",
+#                                        "Dynamic physical" = "ivory",
+#                                        "Bathy & topo" = "saddlebrown",
+#                                        "Biogeochem" = "aquamarine",
+#                                        "Species attributes" = "orchid",
+#                                        "Anthropogenic" = "yellow"),
+#                             name = "Indicator/Covariate\n Category") +
+#           # scale_y_continuous(expand = c(0,0),
+#           #                    limits = c(0,35)) +
+#           scale_y_continuous(expand = expansion(mult = c(0,.1))) + #create continouos y scale and set relative expansion
+#           theme_classic() +
+#           labs(x = "Indicator/Covariate Component", y = "% of Studies") +
+#           theme(plot.title = element_text(face = "bold",
+#                                           size = 16,
+#                                           hjust = 1.5),
+#                 axis.text = element_text(face = "bold",
+#                                          size = 10),
+#                 axis.title = element_text(face = "bold",
+#                                           size = 12),
+#                 legend.position = "inside",
+#                 legend.position.inside = c(0.8,0.3),
+#                 legend.text = element_text(face = "bold",
+#                                            size = 10),
+#                 legend.title = element_text(face = "bold",
+#                                             size = 12,
+#                                             hjust = 0.5)) +
+#           coord_flip() +
+#           facet_wrap_paginate(~ REALM, ncol = 2, nrow = 2, page = i, scales = "free"))
+#   ggsave(paste0("figs/realmcomp_", i, ".png"), scale = 1.1)
+# 
+# }
