@@ -6,7 +6,7 @@ library(patchwork)
 # Read in the main dataframe created in earlier code
 main <- readRDS(file ="output/main_hs.RDS")
 
-# Create a dataframe with rows for each driver, this time keep all rows to represent studies that spanned multiple realms
+# Create a dataframe with rows for each driver (covaraite), this time keep all rows to represent studies that spanned multiple realms
 hs_drivers <- main %>% 
   filter(Year != "1988") %>% 
   separate_rows(Condensed_var, sep =", ") %>% 
@@ -23,7 +23,7 @@ hs_drivers <- main %>%
                                       "Biogeochem" = "biogeochem",
                                       "Human Activity" = "human activity"))
 
-# Make dataframe seprating Taxa and hotspot drivers into rows and condensing them into broader categories
+# Make dataframe seprating Taxa and hotspot drivers (covariates) into rows and condensing them into broader categories
 realm_df <- hs_drivers %>% 
   separate_rows(REALM, sep=",") %>% 
   group_by(Covars, Drivercat, REALM) %>% 
@@ -128,7 +128,7 @@ ggdraw() +
 ggsave(file ="Figs/driversbyrealm_burst.png", scale = 2.5)
 ggsave(file ="Figs/driversbyrealm_burst.svg", scale = 2.5)
 
-#### Make plots for each realm broken down by driver components
+#### Make plots for each realm broken down by driver (covariate) components
 hs_driver_components <- main %>% 
   filter(Year != "1988") %>% 
   separate_rows(Drivers_examined, sep =", ")  %>% 
@@ -249,6 +249,7 @@ hs_driver_components <- main %>%
                                         "Anthropogenic" = c("Fishing", "Production", "Habitat Alteration",
                                                             "Shipping", "Pollutants", "Misc Human"))) 
 
+# Create a list of dataframes to plot coavriate (driver) components in each realm
 realm_list <- hs_driver_components %>% 
   separate_rows(REALM, sep=",") %>% 
   group_by(Driver_comp, Driver, REALM) %>% 
@@ -261,7 +262,7 @@ realm_list <- hs_driver_components %>%
          Percent = (n/Total)*100) %>% 
   group_split(REALM)
 
-
+# Create a plotting function
 driver_plot <- function(df){
   ggplot(data = df) +
     geom_bar(aes(x = reorder(Driver_comp, Percent), y = Percent, fill = Driver), col = "black", stat = "identity") +
@@ -298,14 +299,6 @@ driver_plot <- function(df){
     coord_flip()
 }
 
-# Now build and export the plots by taxa in a loop
-# for (i in 1:length(realm_list)){
-#   temp_df <- realm_list[[i]]
-#   temp_df$REALM <- as.character(temp_df$REALM)
-#   realm_name <- temp_df$REALM[1] # get the decade name
-#   driver_plot(df = temp_df)
-#   ggsave(file = file.path("figs/", paste0(realm_name,"_drivers.png")))
-# }
 
 # Make and group plots into a list 
 realmcomp_plots <- lapply(realm_list, driver_plot)
@@ -346,38 +339,3 @@ realmcomp_plots4 <- cowplot::plot_grid(realmcomp_plots[[13]], realmcomp_plots[[1
                                        align="hv")
 ggsave(plot = realmcomp_plots4,"figs/realmcomp_plots4.png", dpi = 600, 
        width = 7.5, height = 7.5, scale = 2)
-
-# for(i in 1:4){
-#   print(ggplot(data = realm_list) +
-#           geom_bar(aes(x = Driver_comp, y = Percent, fill = Driver), col = "black", stat = "identity") +
-#           scale_fill_manual(values = c("Ecological" = "coral",
-#                                        "Dynamic physical" = "ivory",
-#                                        "Bathy & topo" = "saddlebrown",
-#                                        "Biogeochem" = "aquamarine",
-#                                        "Species attributes" = "orchid",
-#                                        "Anthropogenic" = "yellow"),
-#                             name = "Indicator/Covariate\n Category") +
-#           # scale_y_continuous(expand = c(0,0),
-#           #                    limits = c(0,35)) +
-#           scale_y_continuous(expand = expansion(mult = c(0,.1))) + #create continouos y scale and set relative expansion
-#           theme_classic() +
-#           labs(x = "Indicator/Covariate Component", y = "% of Studies") +
-#           theme(plot.title = element_text(face = "bold",
-#                                           size = 16,
-#                                           hjust = 1.5),
-#                 axis.text = element_text(face = "bold",
-#                                          size = 10),
-#                 axis.title = element_text(face = "bold",
-#                                           size = 12),
-#                 legend.position = "inside",
-#                 legend.position.inside = c(0.8,0.3),
-#                 legend.text = element_text(face = "bold",
-#                                            size = 10),
-#                 legend.title = element_text(face = "bold",
-#                                             size = 12,
-#                                             hjust = 0.5)) +
-#           coord_flip() +
-#           facet_wrap_paginate(~ REALM, ncol = 2, nrow = 2, page = i, scales = "free"))
-#   ggsave(paste0("figs/realmcomp_", i, ".png"), scale = 1.1)
-# 
-# }
