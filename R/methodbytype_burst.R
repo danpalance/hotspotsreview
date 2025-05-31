@@ -36,10 +36,32 @@ methods_stats <- main %>%
                                               "Paleontology", "Radar", "Experiment"),
                                   "Non-field" = c("Satellite", "Model", "Lab",
                                                   "Review", "Database"))) %>%
-  group_by(Methods) %>% 
+  group_by(Methods, Methclass) %>% 
   count(Methods) %>% 
   ungroup() %>% 
   mutate(Percent = n/296)
+
+
+ggplot(data = methods_stats) +
+  geom_bar(aes(x = reorder(Methods,-Percent), y = Percent, fill = Methclass), 
+  col = "black",
+  stat = "identity") +
+  theme_classic() +
+  labs(x = "Methods", y = "Percent of Studies") +
+  scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey"),
+                    name = "Method Type") +
+  scale_y_continuous(expand = c(0,0)) +
+  theme(axis.text.x = element_text(angle = 90),
+        axis.text = element_text(size = 14),
+        axis.title = element_text(size = 16,
+                                  face = "bold"),
+        legend.position = "inside",
+        legend.position.inside = c(0.8,0.8),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 14,
+                                    face = "bold"))
+ggsave(file ="Figs/methods_perc.png",scale=2)
+  
 
 # find how many studies used qualitative methods
 # read in the csv as a dataframe

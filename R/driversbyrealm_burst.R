@@ -1,7 +1,7 @@
 # This code creates the starburst figure by realm for Taxa (figure X) in the hotspot manuscript
 library(tidyverse)
 library(cowplot)
-library(patchwork)
+
 
 # Read in the main dataframe created in earlier code
 main <- readRDS(file ="output/main_hs.RDS")
@@ -249,7 +249,7 @@ hs_driver_components <- main %>%
                                         "Anthropogenic" = c("Fishing", "Production", "Habitat Alteration",
                                                             "Shipping", "Pollutants", "Misc Human"))) 
 
-# Create a list of dataframes to plot coavriate (driver) components in each realm
+# Create a list of dataframes to plot covariate (driver) components in each realm
 realm_list <- hs_driver_components %>% 
   separate_rows(REALM, sep=",") %>% 
   group_by(Driver_comp, Driver, REALM) %>% 
@@ -267,10 +267,10 @@ driver_plot <- function(df){
   ggplot(data = df) +
     geom_bar(aes(x = reorder(Driver_comp, Percent), y = Percent, fill = Driver), col = "black", stat = "identity") +
     scale_fill_manual(values = c("Ecological" = "coral",
-                                 "Dynamic physical" = "ivory",
-                                 "Bathy & topo" = "saddlebrown",
+                                 "Dynamic Physical" = "ivory",
+                                 "Bathy & Topo" = "saddlebrown",
                                  "Biogeochem" = "aquamarine",
-                                 "Species attributes" = "orchid",
+                                 "Species Attributes" = "orchid",
                                  "Anthropogenic" = "yellow"),
                       name = "Indicator/Covariate\n Category") + 
     # scale_y_continuous(expand = c(0,0),
@@ -286,12 +286,13 @@ driver_plot <- function(df){
           axis.title = element_text(face = "bold",
                                     size = 14),
           legend.position = "inside",
-          legend.position.inside = c(0.6,0.15),
+          legend.position.inside = c(0.8,0.2),
           legend.text = element_text(face = "bold",
                                      size = 12),
           legend.title = element_text(face = "bold",
                                       size = 14,
                                       hjust = 0.5),
+          legend.background = element_rect(fill = 'transparent'),
           panel.background = element_rect(fill = 'transparent'),
           plot.background = element_rect(fill = 'transparent',
                                          color = NA)
@@ -339,3 +340,4 @@ realmcomp_plots4 <- cowplot::plot_grid(realmcomp_plots[[13]], realmcomp_plots[[1
                                        align="hv")
 ggsave(plot = realmcomp_plots4,"figs/realmcomp_plots4.png", dpi = 600, 
        width = 7.5, height = 7.5, scale = 2)
+

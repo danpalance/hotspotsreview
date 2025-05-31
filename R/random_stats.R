@@ -29,7 +29,7 @@ methods_df <- main %>%
   group_by(Methods) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/301)*100)
+  mutate(Percentage = (n/291)*100)
 
 
 categories_df <- main %>% 
@@ -45,20 +45,14 @@ realm_df <- main %>%
   group_by(REALM) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/296)*100)
-
-type_realmcat <- main %>% 
-  separate_rows(REALM, sep=", ") %>% 
-  group_by(REALM,Category) %>% 
-  count(Category) %>% 
-  ungroup() 
+  mutate(Percentage = (n/291)*100)
 
 depth_df <- main %>% 
   separate_rows(Depth, sep=",") %>% 
   group_by(Depth) %>% 
   count() %>% 
   ungroup() %>% 
-  mutate(Percentage = (n/296)*100)
+  mutate(Percentage = (n/291)*100)
 
 
 taxa_df <- main %>% 

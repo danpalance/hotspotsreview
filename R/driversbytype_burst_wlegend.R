@@ -189,7 +189,8 @@ grid_data$start <- grid_data$start - 1
 # Make the plot 
 p1 <- ggplot(type_df, aes(x=Type, y=n, fill = Driver)) +       
   geom_bar(aes(x=as.factor(id), y=n, fill = Driver), stat="identity", col = "black") + # need to get Type ordered and colored by grouping
-  scale_fill_manual(values = c("Ecological" = "coral",
+  scale_fill_manual(name = "Covariates & Indicators",
+                    values = c("Ecological" = "coral",
                                "Dynamic Physical" = "ivory",
                                "Bathy & Topo" = "saddlebrown",
                                "Biogeochem" = "aquamarine",
@@ -210,19 +211,41 @@ p1 <- ggplot(type_df, aes(x=Type, y=n, fill = Driver)) +
         axis.title = element_blank(),
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) +
-  coord_polar() + 
-  geom_text(data=label_data, aes(x=id, y=n+10, label=Driver, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=4, angle=label_data$angle, inherit.aes = FALSE ) +
+  # theme(legend.position = "right",
+  #       legend.title = element_text(face = "bold",
+  #                                   hjust = 0.5),
+  #       axis.text = element_blank(),
+  #       axis.title = element_blank(),
+  #       panel.grid = element_blank(),
+  #       plot.margin = unit(rep(-1,4),"cm"),
+  #       legend.background = element_rect(fill = 'transparent',
+  #                                        color = NA),
+  #       panel.background = element_rect(fill = 'transparent',
+  #                                       color = NA),
+  #       plot.background = element_rect(fill = 'transparent',
+  #                                      color = NA)) +
+  coord_polar() #+ 
+  #geom_text(data=label_data, aes(x=id, y=n+10, label=Driver, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=4, angle=label_data$angle, inherit.aes = FALSE ) +
   
   # Add base line information
-  geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, linewidth=0.6 , inherit.aes = FALSE )  +
-  geom_text(data=base_data, aes(x = title, y = -17, label=Type, hjust=hjust), angle = base_data$angle,
-            colour = "black", alpha=0.8, size=3.5, fontface="bold", inherit.aes = FALSE)
+  #geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, linewidth=0.6 , inherit.aes = FALSE )  +
+  #geom_text(data=base_data, aes(x = title, y = -17, label=Type, hjust=hjust), angle = base_data$angle,
+  #          colour = "black", alpha=0.8, size=3.5, fontface="bold", inherit.aes = FALSE)
 
 p2 <- ggplot(type_df) +       
   geom_col(aes(x=as.factor(id), y=Total, fill=Category), col=NA,width=1.5) + 
   scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   coord_polar() +
   theme_minimal() +
+  # theme(legend.position = "inside",
+  #       legend.position.inside = c(0.4,0.8),
+  #       legend.title = element_text(face = "bold",
+  #                                   size = 14,
+  #                                   hjust = 0.5),
+  #       axis.text = element_blank(),
+  #       axis.title = element_blank(),
+  #       panel.grid = element_blank(),
+  #       plot.margin = unit(rep(-1,4),"cm")) 
   theme(legend.position = "none",
         axis.text = element_blank(),
         axis.title = element_blank(),
@@ -381,10 +404,10 @@ driver_plot <- function(df){
   ggplot(data = df) +
     geom_bar(aes(x = reorder(Driver_comp, Percent), y = Percent, fill = Driver), col = "black", stat = "identity") +
     scale_fill_manual(values = c("Ecological" = "coral",
-                                 "Dynamic Physical" = "ivory",
-                                 "Bathy & Topo" = "saddlebrown",
+                                 "Dynamic physical" = "ivory",
+                                 "Bathy & topo" = "saddlebrown",
                                  "Biogeochem" = "aquamarine",
-                                 "Species Attributes" = "orchid",
+                                 "Species attributes" = "orchid",
                                  "Anthropogenic" = "yellow"),
                       name = "Indicator/Covariate\n Category") + 
     # scale_y_continuous(expand = c(0,0),
@@ -400,13 +423,12 @@ driver_plot <- function(df){
           axis.title = element_text(face = "bold",
                                     size = 14),
           legend.position = "inside",
-          legend.position.inside = c(0.8,0.2),
+          legend.position.inside = c(0.6,0.15),
           legend.text = element_text(face = "bold",
                                      size = 12),
           legend.title = element_text(face = "bold",
                                       size = 14,
                                       hjust = 0.5),
-          legend.background = element_rect(fill = 'transparent'),
           panel.background = element_rect(fill = 'transparent'),
           plot.background = element_rect(fill = 'transparent',
                                          color = NA)

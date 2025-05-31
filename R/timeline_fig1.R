@@ -4,8 +4,6 @@
 
 # Load required packages
 library(tidyverse)
-#library(ggtext)
-#library(patchwork)
 
 # read in data
 main <- readRDS("output/main_hs.RDS")
@@ -19,37 +17,6 @@ tsum_type <- main %>%
   ungroup() %>% 
   group_by(Type) %>% 
   mutate(Csum = cumsum(n))
-
-# Create timeline showing cumulative sum of studies 
-typesum_plot <- ggplot(data=tsum_type) +
-  xlim(1989,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
-  labs(x="Year", y="Cumulative # of Studies") +
-  geom_area(aes(x = Year, y = Csum, fill = Category), position = position_identity()) +
-  scale_fill_manual(values=c("Anthropogenic" = "#CD950C", 
-                             "Biophysical" = "#0000CD",
-                             "Ecoimpact"="#228B22")) +
-  scale_y_continuous(expand = c(0,0)) +
-  theme_classic() +
-  theme(legend.position = "inside",
-        legend.position.inside = c(0.9,0.9),
-        legend.title = element_text(size=14),
-        legend.text = element_text(size=12),
-        legend.background = element_rect(fill = "transparent",
-                                         colour = "transparent"),
-        axis.text.x = element_text(face = "bold",
-                                   size = 17,
-                                   color="black"),
-        axis.text.y = element_text(face="bold",
-                                   size = 17,
-                                   color="black"),
-        axis.title.x = element_text(face="bold",
-                                    size = 19,
-                                    color="black"),
-        axis.title.y = element_text(face="bold",
-                                    size = 19,
-                                    color="black")) +
-  facet_wrap(~Type, ncol = 4)
-ggsave(plot=typesum_plot, filename="./figs/type_timeseries.png",units="in",width=12,height=12)
 
 # Create dataframe for cumulative number of studies per year by category
 csum_type <- main %>% 
@@ -89,35 +56,34 @@ catsum_plot <- ggplot(data=csum_final) +
   xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
   labs(x="Year", y="Cumulative # of Studies") +
   geom_area(aes(x=Year,y=Csum,fill=Category),position=position_identity(), alpha = 0.6, show.legend = FALSE) + # remove legend argument to show it
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   # Plot horizontal black line for timeline
   geom_hline(yintercept=0,color="black", linewidth = 0.5) +
   geom_segment(data = type_timeline_df,
                aes(x = Year, y = Text_position, yend = 0, xend = Year, color = Category), 
                linewidth=0.5) + # to show where two type overlap in time
-  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
+  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   geom_label(data = type_timeline_df,
             aes(x = Year, y = Text_position + 5, label = Paper, fontface = "bold", fill = Category), 
             alpha = 0.5, color = "white", size = 4) +
   geom_text(data = year_date_range, 
             aes(x = Year, y = -5, label = Year, fontface = "bold"),
-            size = 4, color='black') +
-  #scale_y_continuous(expand=c(0,0)) +
+            size = 5, color='black') +
   theme_classic() +
   theme(legend.position = "inside",
-        legend.position.inside = c(0.05,0.8),
+        legend.position.inside = c(0.1,0.8),
         legend.title = element_text(size=14, face = "bold"),
         legend.text = element_text(size=12),
         legend.background = element_rect(fill = "transparent",
                                          colour = "transparent"),
         axis.text.y = element_text(face="bold",
-                                   size = 12,
+                                   size = 14,
                                    color="black"),
         axis.title.y = element_text(face="bold",
-                                    size = 14,
+                                    size = 16,
                                     color="black"),
         axis.title.x = element_text(face="bold",
-                                    size = 12,
+                                    size = 16,
                                     color="black"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
@@ -415,4 +381,33 @@ timelines <- catsum_plot / type_plot / methods_plot / taxa_plot +
   
 ggsave(filename="./figs/timelines.png",plot=timelines,units="in",width=19,height=27)
 
-
+# Create timeline showing cumulative sum of studies 
+typesum_plot <- ggplot(data=tsum_type) +
+  xlim(1989,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
+  labs(x="Year", y="Cumulative # of Studies") +
+  geom_area(aes(x = Year, y = Csum, fill = Category), position = position_identity()) +
+  scale_fill_manual(values=c("Anthropogenic" = "#CD950C", 
+                             "Biophysical" = "#0000CD",
+                             "Ecoimpact"="#228B22")) +
+  scale_y_continuous(expand = c(0,0)) +
+  theme_classic() +
+  theme(legend.position = "inside",
+        legend.position.inside = c(0.9,0.9),
+        legend.title = element_text(size=14),
+        legend.text = element_text(size=12),
+        legend.background = element_rect(fill = "transparent",
+                                         colour = "transparent"),
+        axis.text.x = element_text(face = "bold",
+                                   size = 17,
+                                   color="black"),
+        axis.text.y = element_text(face="bold",
+                                   size = 17,
+                                   color="black"),
+        axis.title.x = element_text(face="bold",
+                                    size = 19,
+                                    color="black"),
+        axis.title.y = element_text(face="bold",
+                                    size = 19,
+                                    color="black")) +
+  facet_wrap(~Type, ncol = 4)
+ggsave(plot=typesum_plot, filename="./figs/type_timeseries.png",units="in",width=12,height=12)
