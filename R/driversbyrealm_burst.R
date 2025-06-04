@@ -13,9 +13,9 @@ hs_drivers <- main %>%
   mutate_at(vars(Condensed_var), list(factor)) %>%
   filter(Condensed_var != "none") %>% 
   mutate(Drivercat = forcats::fct_collapse(Condensed_var,
-                                           abiotic = c("dynamic physical", "static physical"),
-                                           biotic = c("ecological", "species attributes", "biogeochem"),
-                                           anthropogenic = c("human activity"))) %>% 
+                                           Abiotic = c("dynamic physical", "static physical"),
+                                           Biotic = c("ecological", "species attributes", "biogeochem"),
+                                           Anthropogenic = c("human activity"))) %>% 
   mutate(Covars = forcats::fct_recode(Condensed_var, "Dynamic Physical" = "dynamic physical",
                                       "Static Physical" = "static physical",
                                       "Ecological" = "ecological",
@@ -34,6 +34,21 @@ realm_df <- hs_drivers %>%
   ungroup() %>% 
   mutate(REALM = as.factor(REALM))
 
+# create legend plot for realms
+ggplot(data = realm_df) +
+  geom_bar(aes(x = REALM, fill = REALM)) +
+  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
+                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
+                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
+                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) 
+ggsave("figs/realm_legend.png")
+
+# Make driver grouping legend
+ggplot(realm_df %>% drop_na()) +       
+  geom_bar(aes(x = Covars, fill = Drivercat)) + 
+  scale_fill_manual(name=bquote(bold("Covariates & Indicators")),
+                    values=c("Abiotic"="saddlebrown","Biotic"="green4", "Anthropogenic"="goldenrod"))
+ggsave("figs/covar_legend.png")
 
 # Setup empty bar spacers between realms
 empty_bar <- 1
@@ -107,12 +122,10 @@ p1 <- ggplot(realm_df, aes(x = Covars, y=n)) +
 
 p2 <- ggplot(realm_df) +       
   geom_col(aes(x = as.factor(id), y = Total, fill = REALM), col = NA,width = 1.5) + 
-  scale_fill_manual(name = bquote(bold("Realm")),
-                    values = c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", 
-                              "Tropical Atlantic"="gold2","Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", 
-                              "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                              "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4",
-                              "Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1")) +
+  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
+                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
+                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
+                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",

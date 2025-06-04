@@ -43,7 +43,7 @@ methods_stats <- main %>%
 
 
 ggplot(data = methods_stats) +
-  geom_bar(aes(x = reorder(Methods,-Percent), y = Percent, fill = Methclass), 
+  geom_bar(aes(x = reorder(Methods, Percent), y = Percent, fill = Methclass), 
   col = "black",
   stat = "identity") +
   theme_classic() +
@@ -52,15 +52,16 @@ ggplot(data = methods_stats) +
                     name = "Method Type") +
   scale_y_continuous(expand = c(0,0)) +
   theme(axis.text.x = element_text(angle = 90),
-        axis.text = element_text(size = 14),
-        axis.title = element_text(size = 16,
+        axis.text = element_text(size = 18),
+        axis.title = element_text(size = 20,
                                   face = "bold"),
         legend.position = "inside",
-        legend.position.inside = c(0.8,0.8),
+        legend.position.inside = c(0.8,0.2),
         legend.text = element_text(size = 12),
         legend.title = element_text(size = 14,
-                                    face = "bold"))
-ggsave(file ="Figs/methods_perc.png",scale=2)
+                                    face = "bold")) +
+  coord_flip()
+ggsave(file ="Figs/methods_perc.png")
   
 
 # find how many studies used qualitative methods
@@ -190,6 +191,13 @@ grid_data$start <- grid_data$start - 1
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
+# legend plot
+ggplot(methods_df) +       
+  geom_bar(aes(x = Type, fill = Category)) + 
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22"))
+ggsave("figs/category_legend.png")
+                    
+                    
 p1 <- ggplot(methods_df, aes(x = Methods, y = n, fill = Methclass)) +       
   geom_bar(aes(x=as.factor(id), y=n, fill = Methclass), stat="identity", col = "black") + # need to get taxa ordered and colored by grouping
   scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) + 
@@ -209,7 +217,7 @@ p1 <- ggplot(methods_df, aes(x = Methods, y = n, fill = Methclass)) +
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) +
   coord_polar() + 
-  geom_text(data=label_data, aes(x=id, y=n+10, label=Methods, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=2.5, angle=label_data$angle, inherit.aes = FALSE ) +
+  geom_text(data=label_data, aes(x=id, y=n+10, label=Methods, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=4, angle=label_data$angle, inherit.aes = FALSE ) +
   
   # Add base line information
   geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, linewidth=0.6 , inherit.aes = FALSE )  +
@@ -219,7 +227,7 @@ p1 <- ggplot(methods_df, aes(x = Methods, y = n, fill = Methclass)) +
 p2 <- ggplot(methods_df) +       
   geom_col(aes(x = as.factor(id), y = Total, fill = Category), 
            col = NA, width = 1.5) + 
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) + 
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) + 
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
@@ -232,5 +240,5 @@ p2 <- ggplot(methods_df) +
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
-ggsave(file ="Figs/methodsbytype_burst.png",scale=2)
+#ggsave(file ="Figs/methodsbytype_burst.png",scale=2)
 ggsave(file ="Figs/methodsbytype_burst.svg",scale=2)

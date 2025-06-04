@@ -117,7 +117,7 @@ p1 <- ggplot(realm_df, aes(x=REALM, y=n, fill= Type)) +
 
 p2 <- ggplot(realm_df) +       
   geom_col(aes(x=as.factor(id), y = Total, fill=Category), col=NA, width=1.5) + 
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
+  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",

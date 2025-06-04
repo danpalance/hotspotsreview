@@ -74,6 +74,12 @@ grid_data$start <- grid_data$start - 1
 # could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
+# Legend plot for taxa
+ggplot(realm_df %>% drop_na()) +
+  geom_bar(aes(x = Taxa2, fill = Taxa2), colour = "black") + 
+  scale_fill_brewer(palette = "Set3") 
+ggsave("figs/taxa_legend.png")
+  
 p1 <- ggplot(realm_df, aes(x = Taxa2, y = n, fill= Taxa2)) +       
   geom_bar(aes(x=as.factor(id), y = n, fill = Taxa2), stat = "identity", colour = "black") + 
   scale_fill_brewer(palette = "Set3") +
