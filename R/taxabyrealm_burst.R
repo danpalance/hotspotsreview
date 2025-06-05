@@ -77,7 +77,8 @@ grid_data$start <- grid_data$start - 1
 # Legend plot for taxa
 ggplot(realm_df %>% drop_na()) +
   geom_bar(aes(x = Taxa2, fill = Taxa2), colour = "black") + 
-  scale_fill_brewer(palette = "Set3") 
+  scale_fill_brewer(name=bquote(bold("Taxa")),
+                    palette = "Set3") 
 ggsave("figs/taxa_legend.png")
   
 p1 <- ggplot(realm_df, aes(x = Taxa2, y = n, fill= Taxa2)) +       
