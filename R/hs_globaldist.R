@@ -4,7 +4,6 @@ library(tidyverse)
 library(rnaturalearth)
 library(rnaturalearthdata)
 library(sf)
-library(glue)
 library(cowplot)
 
 #### Read in and organize data ####
