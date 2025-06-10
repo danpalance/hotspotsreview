@@ -1,4 +1,9 @@
-# Hotspot review paper code
+# Hotspot review paper code to build the main dataset from the spreadsheet
+# and plot the global distribution of hotspot work by geographic location
+# and depth
+# Written by Dan Palance
+# Last updated 09 June 2025
+
 # read in required packages
 library(tidyverse)
 library(rnaturalearth)
@@ -7,8 +12,10 @@ library(sf)
 library(cowplot)
 
 #### Read in and organize data ####
-# read in the csv as a dataframe
-hs_data <- read.csv("data/hsr_final.csv")[,2:19] # Remove the first column and last four columns
+# read in the spreadsheet csv as a dataframe
+# The commented out dataframe is my version which has more private notes
+#hs_data <- read.csv("data/hsr_final.csv")[,2:19] # Remove the first column and last four columns
+hs_data <- read.csv("data/hsr_final_subvers.csv")
 
 # Rename columns to something more R friendly
 colnames(hs_data) <- c("Authors","Year","Methods","Title","Def_clarity","Type",
@@ -19,7 +26,7 @@ colnames(hs_data) <- c("Authors","Year","Methods","Title","Def_clarity","Type",
 # Remove these two types since they're too new to define well
 hsr_df <- hs_data %>% 
   filter(Type != "Metabolic Production" & Type != "Socio-ecological") %>% 
-  filter(Year != 1988)
+  filter(Year != 1988) # remove the Myers 1988 study since its not marine
 
 # Organize the types by three broad categories: Biophysical, Anthropogenic, and
 # Ecoimpact using the forcat package in tidyverse
@@ -84,6 +91,7 @@ global_count <- outside_meow %>%
   count()
   
 # Combine meow_hs (spatial df) and the studies outside of eco realms to create a master dataframe for non spatial analysis
+# THIS DATASET IS USED IN ALL SUBSEQUENT ANALYSES!!!! #
 main <- as.data.frame(meow_hs) %>% 
   select(-c(ECO_CODE,ECOREGION,PROV_CODE,PROVINCE,RLM_CODE,ALT_CODE,ECO_CODE_X,Lat_Zone,geometry)) %>% 
   rbind(outside_meow, .) %>% 
@@ -122,7 +130,7 @@ hs_cats <- hs_types %>%
   summarize(Total = sum(n),
             Percent = Total/296)
 
-# Figure 1: Create hotspot map of # of studies by realm and add density plots of # of studies by lat and lon on sides ------
+# Create hotspot map of # of studies by realm and add density plots of # of studies by lat and lon on sides ------
 realm_plot <- ggplot() +
   geom_sf(data=realms, aes(fill=REALM), color="black") +
   scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", 
@@ -247,7 +255,7 @@ ggsave(plot = bottom_row,"figs/globaldist_bottomrow.png", dpi = 600,
 ggsave(plot = bottom_row,"figs/globaldist_bottomrow.svg", dpi = 600, 
        scale = 1.5, width = 8, height = 6)
 
-#### Extra plots to visualize other dimensions of the data ####
+#### Extra plots to visualize other dimensions of the data but not included in paper ####
 
 # Take a look at depth around the world
 depth_by_location <- hs_locations %>% 

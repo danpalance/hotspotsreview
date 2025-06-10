@@ -1,7 +1,11 @@
-# This code creates the starburst figure by realm for taxa (figure 3) in the hotspot manuscript
+# This code creates the sideways stacked bar graph for taxa by type in the hotspot manuscript
+# Written by Dan Palance
+# Last modified 09 June 2025
+
+# Load required packages
 library(tidyverse)
 library(cowplot)
-#library(patchwork)
+
 
 # Make dataframe seprating taxa and hotspot type into rows and condensing them into broader categories
 main <- readRDS("output/main_hs.RDS")

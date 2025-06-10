@@ -1,11 +1,17 @@
-# This code creates the starburst figure of taxa by realm in the hotspot manuscript
+# This code creates the taxa by realm starburst plot in the hotspot manuscript
+# Covariates and indicators were originally referred to as drivers, and I have kept it his way in the code for simplicity
+# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
+# Written by Dan Palance
+# Last modified 09 June 2025
+
+# read in required packages
 library(tidyverse)
 library(cowplot)
 
-# Read in the data from the first R script
+# Read in the data from hs_globaldist.R
 main <- readRDS("output/main_hs.RDS")
 
-# Make dataframe separating taxa into rows and condensing them into broader categories
+# Make dataframe separating taxa and realms into rows and condensing them into broader categories
 realm_df <- main %>% 
   filter(Year != "1988",
          Taxa != "none",
@@ -57,7 +63,7 @@ number_of_bar.base <- nrow(base_data)
 base_data$id <- seq(1, nrow(base_data))
 angle <- 90 - 360 * (base_data$id-0.5) /number_of_bar.base
 
-# Create angle for the taxa labels in the circle using the median value from the grouped bar charts realm labels
+# Create angle for the labels in the circle using the median value from the grouped bar charts realm labels
 base_data_angle <- label_data %>% 
   group_by(REALM) %>% 
   summarise(median = median(angle, na.rm = FALSE)) %>%  
@@ -71,7 +77,6 @@ grid_data$end <- grid_data$start
 grid_data$start <- grid_data$start - 1
 #grid_data <- grid_data[-13,] # remove the scale bars for the area where the scale labels will go
 
-# could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
 # Legend plot for taxa
@@ -105,7 +110,7 @@ p1 <- ggplot(realm_df, aes(x = Taxa2, y = n, fill= Taxa2)) +
   
   # Add base line information
   geom_segment(data=base_data, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, linewidth=0.6 , inherit.aes = FALSE )  +
-  geom_text(data=base_data, aes(x = title, y = -17, label=REALM,hjust=base_data$hjust), angle = base_data$angle, # Need to get the hjust working around the circle for the realm labels 
+  geom_text(data=base_data, aes(x = title, y = -17, label=REALM,hjust=base_data$hjust), angle = base_data$angle,  
             colour = "black", alpha=0.8, size=3.5, fontface="bold", inherit.aes = FALSE)
 
 p2 <- ggplot(realm_df) +       
@@ -122,7 +127,7 @@ p2 <- ggplot(realm_df) +
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) 
 
-# Nest the circular bar charts with total taxa inside taxa by realm
+# Nest the circular bar charts 
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)

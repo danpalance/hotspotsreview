@@ -1,8 +1,15 @@
-# This code creates the starburst figure by realm for Type (figure 3) in the hotspot manuscript
+# This code creates the hotspot covariates and indicators by type starburst plot which has been supplanted by the sankey plot, but
+# this code is still used to create the individual driver by type plots so I've kept it all here
+# Covariates and indicators were originally referred to as drivers, and I have kept it his way in the code for simplicity
+# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
+# Written by Dan Palance
+# Last modified 09 June 2025
+
+# read in required packages
 library(tidyverse)
 library(cowplot)
 
-# Read in the main dataframe created in earlier code
+# Read in the main dataframe created in hs_globaldist.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver
@@ -12,7 +19,7 @@ hs_drivers <- main %>%
   separate_rows(Drivers_examined, sep =", ") %>% 
   # mutate_at(vars(Drivers_examined_condensed),list(factor)) %>%
   filter(Drivers_examined != "none") %>% 
-  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, # this is not working since habitat falls into multiple categories, remove from all but ecological?
+  mutate(Driver_comp = forcats::fct_collapse(Drivers_examined, 
                                              
                                              ## DYNAMIC PHYSICAL ##
                                              Temperature = c("bottom temperature", "SST", "temperature", "heat"),
@@ -164,7 +171,7 @@ label_data$angle <- ifelse(angle < -90, angle+180, angle)
 # prepare a data frame for base lines
 base_data <- type_df %>% 
   group_by(Type) %>% 
-  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% # need to fix this since those that only have one occurrence aren't getting a line
+  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% 
   rowwise() %>% 
   mutate(title=mean(c(start, end)))
 number_of_bar.base <- nrow(base_data)
@@ -188,7 +195,7 @@ grid_data$start <- grid_data$start - 1
 # Assemble graph 
 # Make the plot 
 p1 <- ggplot(type_df, aes(x=Type, y=n, fill = Driver)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill = Driver), stat="identity", col = "black") + # need to get Type ordered and colored by grouping
+  geom_bar(aes(x=as.factor(id), y=n, fill = Driver), stat="identity", col = "black") +
   scale_fill_manual(values = c("Ecological" = "coral",
                                "Dynamic Physical" = "ivory",
                                "Bathy & Topo" = "saddlebrown",

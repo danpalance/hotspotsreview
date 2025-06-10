@@ -1,12 +1,18 @@
-# This code creates the starburst figure by realm for Taxa (figure X) in the hotspot manuscript
+# This code creates the hotspot covariates and indicators by realm starburst plot in the hotspot manuscript
+# Covariates and indicators were originally referred to as drivers, and I have kept it his way in the code for simplicity
+# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
+# Written by Dan Palance
+# Last modified 09 June 2025
+
+# read in required packages
 library(tidyverse)
 library(cowplot)
 
-
-# Read in the main dataframe created in earlier code
+# Read in the main dataframe created in hs_globaldist.R
 main <- readRDS(file ="output/main_hs.RDS")
 
-# Create a dataframe with rows for each driver (covaraite), this time keep all rows to represent studies that spanned multiple realms
+# Create a dataframe with rows for each driver (covariate/indicator), 
+# but keep all rows to represent studies that spanned multiple realms
 hs_drivers <- main %>% 
   filter(Year != "1988") %>% 
   separate_rows(Condensed_var, sep =", ") %>% 
@@ -23,7 +29,7 @@ hs_drivers <- main %>%
                                       "Biogeochem" = "biogeochem",
                                       "Human Activity" = "human activity"))
 
-# Make dataframe seprating Taxa and hotspot drivers (covariates) into rows and condensing them into broader categories
+# Make dataframe seprating realms and hotspot drivers (covariates) into rows 
 realm_df <- hs_drivers %>% 
   separate_rows(REALM, sep=",") %>% 
   group_by(Covars, Drivercat, REALM) %>% 
@@ -34,7 +40,7 @@ realm_df <- hs_drivers %>%
   ungroup() %>% 
   mutate(REALM = as.factor(REALM))
 
-# create legend plot for realms
+# create legend plot for realms which will be cropped in adobe illustrator
 ggplot(data = realm_df) +
   geom_bar(aes(x = REALM, fill = REALM)) +
   scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
@@ -43,7 +49,7 @@ ggplot(data = realm_df) +
                                                         "Global"="lightsteelblue4","Open Ocean"="gray59")) 
 ggsave("figs/realm_legend.png")
 
-# Make driver grouping legend
+# Make driver grouping legend which will be cropped in adobe illustrator
 ggplot(realm_df %>% drop_na()) +       
   geom_bar(aes(x = Covars, fill = Drivercat)) + 
   scale_fill_manual(name=bquote(bold("Covariates & Indicators")),
@@ -71,14 +77,14 @@ label_data$angle <- ifelse(angle < -90, angle+180, angle)
 # prepare a data frame for base lines
 base_data <- realm_df %>% 
   group_by(REALM) %>% 
-  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% # need to fix this since those that only have one occurrence aren't getting a line
+  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% 
   rowwise() %>% 
   mutate(title=mean(c(start, end)))
 number_of_bar.base <- nrow(base_data)
 base_data$id <- seq(1, nrow(base_data))
 angle <- 90 - 360 * (base_data$id-0.5) /number_of_bar.base
 
-# Create angle for the Taxa labels in the circle using the median value from the grouped bar charts realm labels
+# Create angle for the labels in the circle using the median value from the grouped bar charts labels
 base_data_angle <- label_data %>% 
   group_by(REALM) %>% 
   summarise(median = median(angle, na.rm = FALSE)) %>%  
@@ -96,7 +102,7 @@ grid_data <- grid_data[-13,] # remove the scale bars for the area where the scal
 # Make the plot 
 p1 <- ggplot(realm_df, aes(x = Covars, y=n)) +       
   geom_bar(aes(x = as.factor(id), y=n, fill = Drivercat), stat="identity") + 
-  scale_fill_manual(values=c("abiotic"="saddlebrown","biotic"="green4", "anthropogenic"="goldenrod")) +
+  scale_fill_manual(values=c("Abiotic"="saddlebrown","Biotic"="green4", "Anthropogenic"="goldenrod")) +
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 15, xend = start, yend = 15), colour = "grey", alpha=1, linewidth=0.3, inherit.aes = FALSE ) +
@@ -134,7 +140,7 @@ p2 <- ggplot(realm_df) +
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) 
 
-# Nest the circular bar charts with total taxa inside Taxa by realm
+# Nest the circular bar charts 
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
@@ -262,7 +268,7 @@ hs_driver_components <- main %>%
                                         "Anthropogenic" = c("Fishing", "Production", "Habitat Alteration",
                                                             "Shipping", "Pollutants", "Misc Human"))) 
 
-# Create a list of dataframes to plot covariate (driver) components in each realm
+# Create a list of dataframes to plot driver components in each realm
 realm_list <- hs_driver_components %>% 
   separate_rows(REALM, sep=",") %>% 
   group_by(Driver_comp, Driver, REALM) %>% 

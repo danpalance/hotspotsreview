@@ -1,7 +1,10 @@
-# Random stats like number of studies that looked at persistence, different methods, etc.
+# Random stats used for percentages in manuscript like number of studies 
+# that looked at persistence, different methods, etc.
+# Written by Dan Palance
+# Last updated 09 June 2025
 library(tidyverse)
 
-# read in data and remove duplicates from multirealm studies
+# read in data from hs_globaldist.R and remove duplicates from multirealm studies
 main <- readRDS("output/main_hs.RDS") %>% distinct(Title, .keep_all = TRUE) 
 
 type_perc <- main %>% 
@@ -129,3 +132,90 @@ taxatype_df <- main %>%
   ungroup() %>% 
   mutate(Type = as.factor(Type),
          Percentage = (n/Total)*100)
+
+
+# find how many studies used qualitative methods
+# read in the csv as a dataframe
+#hs_data <- read.csv("data/hsr_final.csv")[,2:19] # Remove the first column and last four columns
+hs_data <- read.csv("data/hsr_final_subvers.csv") # Remove the first column and last four columns
+
+# Rename columns to something more R friendly
+colnames(hs_data) <- c("Authors","Year","Methods","Title","Def_clarity","Type",
+                       "Definition","Taxa","Journal","Lat","Lon","Location",
+                       "Depth","Summary","Persistence","Drivers_examined", 
+                       "Drivers_examined_condensed", "Condensed_var") 
+# First look in definition
+quant_methods_def <- hs_data %>% 
+  filter(Year!="1988") %>% # remove Myers study
+  distinct(Title, .keep_all = TRUE) %>% 
+  filter(str_detect(Definition, "KDE|SDM|Getis|kernel|standard deviation|
+                      Standard deviation|Standard Deviation|
+                      species distribution model|kde|sdm|
+                      Species distribution model|getis|Kernel"))
+
+# Then look in summary
+quant_methods_smy <- hs_data %>% 
+  filter(Year!="1988") %>% # remove Myers study
+  distinct(Title, .keep_all = TRUE) %>% 
+  filter(str_detect(Summary, "KDE|SDM|Getis|kernel|standard deviation|
+                      Standard deviation|Standard Deviation|
+                      species distribution model|kde|sdm|
+                      Species distribution model|getis|Kernel"))
+
+quant_methods <- bind_rows(quant_methods_def, quant_methods_smy) %>% 
+  distinct(Title, .keep_all = TRUE)
+
+# total number of quant studies
+nrow(quant_methods)/301 
+
+getis_smy <- quant_methods %>% 
+  filter(str_detect(Summary, "Getis|getis"))
+getis_def <- quant_methods %>% 
+  filter(str_detect(Definition, "Getis|getis"))
+getis <- bind_rows(getis_def, getis_smy) %>% 
+  distinct(Title, .keep_all = TRUE) 
+# Get percentage of KDE studies
+nrow(getis)/301 # 
+
+sdm_smy <- quant_methods %>% 
+  filter(str_detect(Summary, "SDM|species distribution model|sdm|
+                      Species distribution model|
+                      species distribution model"))
+sdm_def<- quant_methods %>% 
+  filter(str_detect(Definition, "SDM|species distribution model|sdm|
+                      Species distribution model|
+                      species distribution model"))
+sdm <- bind_rows(sdm_def, sdm_smy) %>% 
+  distinct(Title, .keep_all = TRUE) 
+# Get percentage of SDM studies
+nrow(sdm)/301
+
+kde_smy <- quant_methods %>% 
+  filter(str_detect(Summary, "KDE|kernel|Kernel"))
+kde_def <- quant_methods %>% 
+  filter(str_detect(Definition, "KDE|kernel|Kernel"))
+kde <- bind_rows(kde_smy, kde_def) %>% 
+  distinct(Title, .keep_all = TRUE)
+# Get percentage of KDE studies
+(nrow(kde))/301 
+
+stdev_smy <- quant_methods %>% 
+  filter(str_detect(Summary, "standard deviation|Standard deviation|Standard Deviation"))
+stdev_def <- quant_methods %>% 
+  filter(str_detect(Definition, "standard deviation|Standard deviation|Standard Deviation"))
+stdev <- bind_rows(stdev_def,stdev_smy) %>% 
+  distinct(Title, .keep_all = TRUE)
+nrow(stdev)/301
+
+getis_sdm <- inner_join(getis, sdm) %>% mutate(ENS = "getis-sdm")
+getis_sd <- inner_join(getis, stdev) %>% mutate(ENS = "getis-sd")
+getis_kde <- inner_join(getis, kde) %>% mutate(ENS = "getis-kde")
+sdm_kde <- inner_join(sdm, kde) %>% mutate(ENS = "sdm-kde")
+sdm_sd <- inner_join(sdm, stdev ) %>% mutate(ENS = "sdm-sd")
+kde_sd <- inner_join(kde, stdev) %>% mutate(ENS = "kde-sd")
+
+ens_quant <- bind_rows(getis_sdm, getis_sd, getis_kde, sdm_kde, sdm_sd, kde_sd)
+unique(ens_quant$Title)
+
+
+

@@ -1,11 +1,13 @@
-# This code creates a sankey plot of drivers
-# written by Dan Palance on April 7, 2025
+# This code creates a sankey plot of hotspot covariates and indicators which are
+# referred to as drivers from an earlier draft and kept here for simplicity
+# written by Dan Palance 
+# last modified on 09 June 2025
 
 # Load required packages
 library(tidyverse)
 library(plotly)
 
-# Read in the main dataframe created in earlier code
+# Read in the main dataframe created in hs_globaldist.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver
@@ -191,3 +193,4 @@ p <- plot_ly(
   link = as.list(links))
 p
 
+# To save a png, use the save option in the plots window

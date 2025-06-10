@@ -1,9 +1,14 @@
-# This code creates the starburst figure by realm for Methods (figure 3) in the hotspot manuscript
+# This code creates the hotspot method by realm starburst  plot in the hotspot manuscript
+# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
+# Written by Dan Palance
+# Last modified 09 June 2025
+
+# read in required packages
 library(tidyverse)
 library(cowplot)
 
-# Read in data
-main <- readRDS("output/main_hs.RDS")
+# Read in the data from hs_globaldist.R
+main <- readRDS(file ="output/main_hs.RDS")
 
 realm_df <- main %>% 
   filter(Year != "1988") %>% 
@@ -51,7 +56,7 @@ label_data$angle <- ifelse(angle < -90, angle+180, angle)
 # prepare a data frame for base lines
 base_data <- realm_df %>% 
   group_by(REALM) %>% 
-  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% # need to fix this since those that only have one occurrence aren't getting a line
+  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% 
   rowwise() %>% 
   mutate(title=mean(c(start, end)))
 number_of_bar.base <- nrow(base_data)
@@ -78,7 +83,7 @@ grid_data$start <- grid_data$start - 1
 # Assemble graph 
 # Make the plot reorder(Type, n, sum)
 p1 <- ggplot(realm_df, aes(x = Methods, y = n, fill = Methclass)) +       
-  geom_bar(aes(x = as.factor(id), y = n, fill = Methclass), stat = "identity", col = "black") + # need to get Methods ordered and colored by grouping
+  geom_bar(aes(x = as.factor(id), y = n, fill = Methclass), stat = "identity", col = "black") + 
   scale_fill_manual(values=c("Field"="beige", "Non-field"="darkslategrey")) +
   
   # Add a val=20/15/10/5 lines. I do it at the beginning to make sure barplots are OVER it.

@@ -1,10 +1,14 @@
-# This code creates the starburst figure by realm for taxa (figure 3) in the hotspot manuscript
-library(tidyverse)
-library(ggtext)
-library(cowplot)
-#library(patchwork)
+# This code creates the realm by type starburst plot in the hotspot manuscript
+# Covariates and indicators were originally referred to as drivers, and I have kept it his way in the code for simplicity
+# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
+# Written by Dan Palance
+# Last modified 09 June 2025
 
-# Read in the data from the first R script
+# read in required packages
+library(tidyverse)
+library(cowplot)
+
+# Read in the data from hs_globaldist.R
 main <- readRDS("output/main_hs.RDS")
 
 # Make realm dataframe
@@ -19,6 +23,8 @@ realm_df <- main %>%
   ungroup() %>% 
   mutate(Type = as.factor(Type))
 
+# make another dataframe to calculate percentage of studies by type in each realm
+# for paper stats
 realm_cat_perc <- main %>% 
   filter(Year != "1988") %>% 
   group_by(REALM, Type,Category) %>% 
@@ -53,7 +59,7 @@ label_data$angle <- ifelse(angle < -90, angle+180, angle)
 # prepare a data frame for base lines
 base_data <-  realm_df %>% 
   group_by(Type) %>% 
-  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% # need to fix this since those that only have one occurrence aren't getting a line
+  summarize(start=min(id)-0.5, end=max(id)-0.5) %>% 
   rowwise() %>% 
   mutate(title=mean(c(start, end)))
 number_of_bar.base <- nrow(base_data)
@@ -75,11 +81,10 @@ grid_data$end <- grid_data$start
 grid_data$start <- grid_data$start - 1
 grid_data <- grid_data[-13,] # remove the scale bars for the area where the scale labels will go
 
-# could add another taxa category called label to trick it into thinking there are labels there and then use annotate to put the text in
 # Assemble graph 
 # Make the plot 
 p1 <- ggplot(realm_df, aes(x=REALM, y=n, fill= Type)) +       
-  geom_bar(aes(x=as.factor(id), y=n, fill= REALM), stat="identity") + # need to get taxa ordered and colored by grouping
+  geom_bar(aes(x=as.factor(id), y=n, fill= REALM), stat="identity") + 
   scale_fill_manual(name=bquote(bold("Realm")),
                     values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", 
                              "Temperate Northern Pacific"="mediumseagreen", 
@@ -126,7 +131,7 @@ p2 <- ggplot(realm_df) +
         panel.grid = element_blank(),
         plot.margin = unit(rep(-1,4),"cm")) 
 
-# Nest the circular bar charts with total taxa inside taxa by realm
+# Nest the circular bar charts 
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
