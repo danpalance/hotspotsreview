@@ -2,7 +2,7 @@
 # Covariates and indicators were originally referred to as drivers, and I have kept it his way in the code for simplicity
 # Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
 # Written by Dan Palance
-# Last modified 09 June 2025
+# Last modified 25 Sep 2025
 
 # read in required packages
 library(tidyverse)
