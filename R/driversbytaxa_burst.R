@@ -50,7 +50,8 @@ taxa_df <- hs_drivers %>%
   ungroup() %>% 
   mutate(Taxa2 = as.factor(Taxa2)) 
 
-  
+# The code below for the circle bar plot is adapted from 
+# https://r-graph-gallery.com/297-circular-barplot-with-groups.html
 # Set a number of 'empty bar' to add at the end of each group
 empty_bar <- 2
 to_add <- data.frame( matrix(NA, empty_bar*nlevels(taxa_df$Taxa2), ncol(taxa_df)) )
