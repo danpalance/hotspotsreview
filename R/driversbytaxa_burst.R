@@ -58,7 +58,7 @@ to_add <- data.frame( matrix(NA, empty_bar*nlevels(taxa_df$Taxa2), ncol(taxa_df)
 colnames(to_add) <- colnames(taxa_df)
 to_add$Taxa2 <- rep(levels(taxa_df$Taxa2), each=empty_bar)
 taxa_df <- rbind(taxa_df, to_add)
-taxa_df <- taxa_df %>% arrange(Taxa2)
+taxa_df <- taxa_df %>% arrange(Taxa2, -n) # order alphabetically by taxa and then highest to lowest n for each taxa
 taxa_df$id <- seq(1, nrow(taxa_df))
 
 # Get the name and the y position of each label
