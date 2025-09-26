@@ -94,8 +94,8 @@ p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill=Taxa2)) +       # Note that
   geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
   geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
   
-  # Add text showing the value of each 100/75/50/25 lines
-  annotate("text", x = rep(max(taxa_df$id),4), y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+  # Add text showing the value of each 100/75/50/25 lines, subtracting 0.25 to align the labels in the middle of white space
+  annotate("text", x = rep(max(taxa_df$id),4)-0.25, y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
   
   geom_bar(aes(x=as.factor(id), y=n, fill=Taxa2), stat="identity", alpha=0.5) +
   ylim(-100,120) +
