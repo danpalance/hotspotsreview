@@ -47,7 +47,9 @@ type_timeline_df <- main %>%
   mutate("Paper" = paste0(Type," (", Authors, ", ", Year, ")")) %>% 
   arrange(Year) %>% # ensures the alternating labels above and below axis work later
   mutate(Position = c(5, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195),
-         Text_position = c(5, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195))
+         Text_position = c(5, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165, 180, 195)) %>% 
+  group_by(Category) %>% 
+  slice_head() # keep only the first paper from each category
 
 # Create year labels for false x-axis
 year_date_range <- as.data.frame(seq(1990,2025,by=5))
@@ -72,12 +74,13 @@ catsum_plot <- ggplot(data=csum_final) +
             aes(x = Year, y = -5, label = Year, fontface = "bold"),
             size = 5, color='black') +
   theme_classic() +
-  theme(legend.position = "inside",
-        legend.position.inside = c(0.1,0.8),
-        legend.title = element_text(size=14, face = "bold"),
-        legend.text = element_text(size=12),
-        legend.background = element_rect(fill = "transparent",
-                                         colour = "transparent"),
+  annotate("point", x = 1988, y = 175, pch = 15, size = 5, color = "#0000CD") +
+  annotate("point", x = 1988, y = 167, pch = 15, size = 5, color = "#228B22") +
+  annotate("point", x = 1988, y = 159, pch = 15, size = 5, color = "#CD950C") +
+  annotate("text", x = 1988.5, y = 175, label = "Biophysical", size = 5, fontface = "bold", hjust = 0) +
+  annotate("text", x = 1988.5, y = 167, label = "Ecological Impact", size = 5, fontface = "bold", hjust = 0) +
+  annotate("text", x = 1988.5, y = 159, label = "Anthropogenic", size = 5, fontface = "bold", hjust = 0) +
+  theme(legend.position = "none",
         axis.text.y = element_text(face="bold",
                                    size = 14,
                                    color="black"),
