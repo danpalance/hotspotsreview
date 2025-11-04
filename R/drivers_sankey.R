@@ -66,7 +66,7 @@ distinct(Title, .keep_all = TRUE) %>% # remove duplicates due to studies occurri
                                                                "island mass effect", "protrusion of surf zone", 
                                                                "tectonic events"),
                                              
-                                             ## STATIC PHYSICAL - RENAME TO BATHY & TOPO ##
+                                             ## STATIC PHYSICAL 
                                              "General Bathy/topo" = c("bathymetry", "depth", "bottom depth", 
                                                                       "topography", "land area", "continental width", 
                                                                       "islands"),

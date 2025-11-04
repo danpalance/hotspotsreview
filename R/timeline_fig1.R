@@ -6,6 +6,7 @@
 
 # Load required packages
 library(tidyverse)
+library(ggbreak)
 
 # read in data created in hs_globaldist.R
 main <- readRDS("output/main_hs.RDS")
@@ -20,6 +21,26 @@ tsum_type <- main %>%
   group_by(Type) %>% 
   mutate(Csum = cumsum(n))
 
+tsum_type <- main %>%
+  filter(Year != "1988") %>%
+  distinct(Title, .keep_all = TRUE) %>%  # remove duplicates from multirealm studies
+  group_by(Year, Category, Type) %>%
+  summarise(n = n(), .groups = "drop") %>%
+  
+  # Ensure every combination of Year and Type exists, fill missing with 0
+  complete(Year = full_seq(as.integer(Year), 1), 
+           Type, 
+           fill = list(n = 0)) %>%
+  
+  arrange(Type, Year) %>%
+  group_by(Type) %>%
+  mutate(Csum = cumsum(n)) %>%
+  ungroup() %>% 
+  mutate(Category = if_else(is.na(Category) & 
+      Type == "Biodiversity & Endemism | Foraging | Nutrients & Biogeochemical Cycling | Reproduction & Recruitment | Abundance/Density | Habitat", 
+                            "Biophysical", 
+                            Category))
+        
 # Create dataframe for cumulative number of studies per year by category
 csum_type <- main %>% 
   filter(Year!="1988") %>% 
@@ -56,30 +77,32 @@ year_date_range <- as.data.frame(seq(1990,2025,by=5))
 colnames(year_date_range)[1] ="Year"
 
 # Create timeline showing cumulative sum of studies with first study of each type labeled
-catsum_plot <- ggplot(data=csum_final) +
+# catsum_plot <- ggplot(data=csum_final) +
+ggplot(data=csum_final) +
   xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
   labs(x="Year", y="Cumulative # of Studies") +
   geom_area(aes(x=Year,y=Csum,fill=Category),position=position_identity(), alpha = 0.6, show.legend = FALSE) + # remove legend argument to show it
   scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
   # Plot horizontal black line for timeline
   geom_hline(yintercept=0,color="black", linewidth = 0.5) +
-  geom_segment(data = type_timeline_df,
-               aes(x = Year, y = Text_position, yend = 0, xend = Year, color = Category), 
-               linewidth=0.5) + # to show where two type overlap in time
+  # geom_segment(data = type_timeline_df,
+  #              aes(x = Year, y = Text_position, yend = 0, xend = Year, color = Category), 
+  #              linewidth=0.5) + # to show where two type overlap in time
   scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
-  geom_label(data = type_timeline_df,
-            aes(x = Year, y = Text_position + 5, label = Paper, fontface = "bold", fill = Category), 
-            alpha = 0.5, color = "white", size = 4) +
-  geom_text(data = year_date_range, 
+  # geom_label(data = type_timeline_df,
+  #           aes(x = Year, y = Text_position + 5, label = Paper, fontface = "bold", fill = Category), 
+  #           alpha = 0.5, color = "white", size = 4) +
+  geom_text(data = year_date_range,
             aes(x = Year, y = -5, label = Year, fontface = "bold"),
             size = 5, color='black') +
+  scale_x_break(c(1991, 2000)) +
   theme_classic() +
-  annotate("point", x = 1988, y = 175, pch = 15, size = 5, color = "#0000CD") +
-  annotate("point", x = 1988, y = 167, pch = 15, size = 5, color = "#228B22") +
-  annotate("point", x = 1988, y = 159, pch = 15, size = 5, color = "#CD950C") +
-  annotate("text", x = 1988.5, y = 175, label = "Biophysical", size = 5, fontface = "bold", hjust = 0) +
-  annotate("text", x = 1988.5, y = 167, label = "Ecological Impact", size = 5, fontface = "bold", hjust = 0) +
-  annotate("text", x = 1988.5, y = 159, label = "Anthropogenic", size = 5, fontface = "bold", hjust = 0) +
+  annotate("point", x = 2000, y = 175, pch = 15, size = 5, color = "#0000CD") +
+  annotate("point", x = 2000, y = 167, pch = 15, size = 5, color = "#228B22") +
+  annotate("point", x = 2000, y = 159, pch = 15, size = 5, color = "#CD950C") +
+  annotate("text", x = 2000.3, y = 175, label = "Biophysical", size = 5, fontface = "bold", hjust = 0) +
+  annotate("text", x = 2000.3, y = 167, label = "Ecological Impact", size = 5, fontface = "bold", hjust = 0) +
+  annotate("text", x = 2000.3, y = 159, label = "Anthropogenic", size = 5, fontface = "bold", hjust = 0) +
   theme(legend.position = "none",
         axis.text.y = element_text(face="bold",
                                    size = 14,
@@ -92,10 +115,93 @@ catsum_plot <- ggplot(data=csum_final) +
                                     color="black"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
-        axis.line.x = element_blank())
-ggsave(filename="./figs/catsum_time.png", plot = catsum_plot, units = "in", 
+        axis.line.x = element_blank()) 
+ggsave(filename="./figs/catsum_time.png", units = "in", 
        width = 12, height = 4, scale = 1.4)
 
+# Show rpaid expansion of types for each category
+ggplot(data=csum_final %>% filter(Category == "Biophysical")) +
+  xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
+  labs(x="Year", y="Cumulative # of Studies") +
+  geom_area(aes(x = Year,y = Csum), fill = "#0000CD", position = position_identity(), alpha = 0.6, show.legend = FALSE) + # remove legend argument to show it
+  # Plot horizontal black line for timeline
+  geom_hline(yintercept=0,color="black", linewidth = 0.5) +
+  geom_text(data = year_date_range, 
+            aes(x = Year, y = -5, label = Year, fontface = "bold"),
+            size = 5, color='black') +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.y = element_text(face="bold",
+                                   size = 14,
+                                   color="black"),
+        axis.title.y = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.title.x = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  geom_line(data = tsum_type %>% filter(Category == "Biophysical"), aes(x = Year, y = Csum, fill = Type), color = "white") 
+ggsave(filename="./figs/biophys_timeline.png", units = "in", 
+       width = 12, height = 4, scale = 1.4)
+
+# Show rapid expansion of types for each category
+ggplot(data=csum_final %>% filter(Category == "Ecological Impact")) +
+  xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
+  labs(x="Year", y="Cumulative # of Studies") +
+  geom_area(aes(x = Year,y = Csum), fill = "#228B22", position = position_identity(), alpha = 0.6, show.legend = FALSE) + # remove legend argument to show it
+  # Plot horizontal black line for timeline
+  geom_hline(yintercept=0,color="black", linewidth = 0.5) +
+  geom_text(data = year_date_range, 
+            aes(x = Year, y = -5, label = Year, fontface = "bold"),
+            size = 5, color='black') +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.y = element_text(face="bold",
+                                   size = 14,
+                                   color="black"),
+        axis.title.y = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.title.x = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  geom_line(data = tsum_type %>% filter(Category == "Ecological Impact"), aes(x = Year, y = Csum, fill = Type), color = "white") 
+ggsave(filename="./figs/ecoimp_timeline.png", units = "in", 
+       width = 12, height = 4, scale = 1.4)
+
+# Show rpaid expansion of types for each category
+ggplot(data=csum_final) +
+  xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
+  labs(x="Year", y="Cumulative # of Studies") +
+  # Plot horizontal black line for timeline
+  geom_hline(yintercept=0,color="black", linewidth = 0.5) +
+  geom_text(data = year_date_range, 
+            aes(x = Year, y = -5, label = Year, fontface = "bold"),
+            size = 5, color='black') +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.y = element_text(face="bold",
+                                   size = 14,
+                                   color="black"),
+        axis.title.y = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.title.x = element_text(face="bold",
+                                    size = 16,
+                                    color="black"),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.line.x = element_blank()) +
+  geom_line(data = tsum_type, aes(x = Year, y = Csum, color = Category, fill = Type)) +
+  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) 
+ggsave(filename="./figs/type_timeline.png", units = "in", 
+       width = 12, height = 4, scale = 1.4)
  ##### Additional data visualizations not included in paper ####
 # Make the dataframe summarizing type
 type_total <- main %>% 

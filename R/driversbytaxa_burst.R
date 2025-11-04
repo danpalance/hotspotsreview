@@ -17,11 +17,8 @@ hs_drivers <- main %>%
   separate_rows(Condensed_var, sep =", ") %>% 
   mutate_at(vars(Condensed_var), list(factor)) %>%
   filter(Condensed_var != "none") %>% 
-  droplevels() %>% # Remove the "none" category in Condensed_var so it doesn't mess with the circular bar plot
-  mutate(Drivercat = forcats::fct_collapse(Condensed_var,
-                                           abiotic = c("dynamic physical", "static physical"),
-                                           biotic = c("ecological", "species attributes", "biogeochem"),
-                                           anthropogenic = c("human activity"))) 
+  droplevels() # Remove the "none" category in Condensed_var so it doesn't mess with the circular bar plot
+
 
 
 # Make dataframe seprating taxa and hotspot drivers into rows and condensing them into broader categories
@@ -42,7 +39,7 @@ taxa_df <- hs_drivers %>%
                                             "urchins","invertebrates"),
                     "Plants & Seaweed"=c("macroalgae","plants"),
                     "Microbes"="microbes")) %>% 
-  group_by(Condensed_var, Drivercat, Taxa2) %>% 
+  group_by(Condensed_var, Taxa2) %>% 
   count(Taxa2) %>% 
   ungroup() %>% 
   group_by(Taxa2) %>% 
@@ -82,38 +79,37 @@ grid_data$start <- grid_data$start - 1
 grid_data <- grid_data[-1,]
 
 # Make the plot
-p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill=Taxa2)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
-  
-  geom_bar(aes(x=as.factor(id), y=n, fill=Drivercat), stat="identity") +
-  scale_fill_manual(values=c("abiotic"="saddlebrown","biotic"="green4", "anthropogenic"="goldenrod")) +
-  
-  
-  # Add a val=100/75/50/25 lines. I do it at the beginning to make sur barplots are OVER it.
-  geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  
-  # Add text showing the value of each 100/75/50/25 lines, subtracting 0.25 to align the labels in the middle of white space
-  annotate("text", x = rep(max(taxa_df$id),4)-0.25, y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
-  
-  geom_bar(aes(x=as.factor(id), y=n, fill=Taxa2), stat="identity", alpha=0.5) +
-  ylim(-100,120) +
-  theme_minimal() +
-  theme(
-    legend.position = "none",
-    axis.text = element_blank(),
-    axis.title = element_blank(),
-    panel.grid = element_blank(),
-    plot.margin = unit(rep(-1,4), "cm") 
-  ) +
-  coord_polar() + 
-  geom_text(data=label_data, aes(x=id, y=n+10, label=Condensed_var, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=2.5, angle= label_data$angle, inherit.aes = FALSE ) +
-  
-  # Add base line information
-  geom_segment(data=base_data, aes(x = start-0.5, y = -5, xend = end+0.5, yend = -5), colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE )  +
-  geom_text(data=base_data, aes(x = title, y = -18, label=Taxa2), hjust=1, colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)
-
+p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill = Taxa2)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+        geom_bar(aes(x = as.factor(id), y = n, fill = Taxa2), col = "black", stat="identity") +
+        scale_fill_brewer(palette = "Set3") +
+        geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), 
+                     colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE) +
+        geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), 
+                     colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE) +
+        geom_segment(data=grid_data, aes(x = end, y = 40, xend = start, yend = 40), 
+                     colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE) +
+        geom_segment(data=grid_data, aes(x = end, y = 20, xend = start, yend = 20), 
+                     colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE) +
+        # Add text showing the value of each 100/75/50/25 lines, subtracting 0.25 to align the labels in the middle of white space
+        annotate("text", x = rep(max(taxa_df$id),4)-0.25, y = c(20, 40, 60, 80), label = c("20", "40", "60", "80") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+        geom_bar(aes(x = as.factor(id), y = n, fill = Taxa2), stat = "identity", alpha = 0.5) +
+        ylim(-100,120) +
+        theme_minimal() +
+        theme(legend.position = "none",
+              axis.text = element_blank(),
+              axis.title = element_blank(),
+              panel.grid = element_blank(),
+              plot.margin = unit(rep(-1,4), "cm")) +
+        coord_polar() + 
+        geom_text(data = label_data, aes(x = id, y = n+10, label = stringr::str_to_title(Condensed_var), hjust = hjust), 
+                  color = "black", fontface = "bold", alpha = 0.6, size = 4, 
+                  angle = label_data$angle, inherit.aes = FALSE ) +
+        # Add base line information
+        geom_segment(data=base_data, aes(x = start-0.5, y = -5, xend = end+0.5, yend = -5), 
+                     colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE )  +
+        geom_text(data=base_data, aes(x = title, y = -18, label=Taxa2), hjust=1, 
+                  colour = "black", alpha=0.8, size=4, fontface="bold", inherit.aes = FALSE)
+      
 
 # Inner bar plot
 p2 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill=Taxa2)) +       
@@ -131,7 +127,7 @@ p2 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill=Taxa2)) +
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
-ggsave(file ="Figs/driversbytaxa_burst.svg", scale = 2.5)
+#ggsave(file ="Figs/driversbytaxa_burst.svg", scale = 2.5)
 #ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
 
 
@@ -262,15 +258,28 @@ taxa_list <- hs_driver_components %>%
   separate_rows(Taxa, sep=",") %>% 
   filter(Taxa != "many") %>% # remove the one study where it was not possible to delineate taxa (Moran and Kanemoto 2007)
   filter(Taxa != "none") %>% # remove studies that didn't look at taxa
-  mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
-                              "Seabirds"="seabirds",
-                              "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
-                              "Reptiles"=c("sea turtles","sea snake","reptiles"),
+  mutate(Taxa2 = fct_collapse(Taxa,
+                              "Ectothermic Verts" = c("bony fish","cart fish",
+                                                      "reef fish","fish", "sea turtles",
+                                                      "sea snake","reptiles"),
+                              "Endothermic Verts" = c("seabirds","cetaceans","pinnipeds",
+                                                      "fissipeds","sirenians",
+                                                      "marine mammals","jaguars","mammals"),
                               "Plankton"=c("microalgae","nekton","plankton"),
-                              "Krill"="krill",
-                              "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
+                              "Macro Invertebrates"=c("krill","crustaceans","inverts",
+                                                      "mollusks","coral","sponges","seastars",
+                                                      "urchins","invertebrates"),
                               "Plants & Seaweed"=c("macroalgae","plants"),
                               "Microbes"="microbes")) %>% 
+  # mutate(Taxa2 = fct_collapse(Taxa,"Fish"=c("bony fish","cart fish","reef fish","fish"),
+  #                             "Seabirds"="seabirds",
+  #                             "Mammals"=c("cetaceans","pinnipeds","fissipeds","sirenians","marine mammals","jaguars","mammals"),
+  #                             "Reptiles"=c("sea turtles","sea snake","reptiles"),
+  #                             "Plankton"=c("microalgae","nekton","plankton"),
+  #                             "Krill"="krill",
+  #                             "Invertebrates"=c("crustaceans","inverts","mollusks","coral","sponges","seastars","urchins","invertebrates"),
+  #                             "Plants & Seaweed"=c("macroalgae","plants"),
+  #                             "Microbes"="microbes")) %>% 
   group_by(Driver_comp, Driver, Taxa2) %>% 
   count(Taxa2) %>% 
   ungroup() %>% 
@@ -337,19 +346,18 @@ ggsave(plot = taxacomp_plots1,"figs/taxacomp_plots1.png", dpi = 600,
        width = 7.5, height = 7.5, scale = 2)
 
 taxacomp_plots2 <- cowplot::plot_grid(taxacomp_plots[[5]], taxacomp_plots[[6]],
-                                       taxacomp_plots[[7]], taxacomp_plots[[8]],
-                                       labels = c('E)', 'F)', 'G)', 'H)'),
+                                       labels = c('E)', 'F)'),
                                        label_size = 18,
                                        label_fontface = "bold",
                                        align="hv")
 ggsave(plot = taxacomp_plots2,"figs/taxacomp_plots2.png", dpi = 600, 
        width = 7.5, height = 7.5, scale = 2)
 
-taxacomp_plots3 <- cowplot::plot_grid(taxacomp_plots[[9]],NULL, NULL, NULL, # add dummy plots to keep plot dimensions
-                                       labels = c('I)'),
-                                       label_size = 18,
-                                       label_fontface = "bold",
-                                       align="hv")
-ggsave(plot = taxacomp_plots3,"figs/taxacomp_plots3.png", dpi = 600, 
-       width = 7.5, height = 7.5, scale = 2)
+# taxacomp_plots3 <- cowplot::plot_grid(taxacomp_plots[[9]],NULL, NULL, NULL, # add dummy plots to keep plot dimensions
+#                                        labels = c('I)'),
+#                                        label_size = 18,
+#                                        label_fontface = "bold",
+#                                        align="hv")
+# ggsave(plot = taxacomp_plots3,"figs/taxacomp_plots3.png", dpi = 600, 
+#        width = 7.5, height = 7.5, scale = 2)
 
