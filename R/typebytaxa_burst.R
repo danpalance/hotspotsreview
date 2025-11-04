@@ -120,3 +120,15 @@ ggdraw() +
   draw_plot(p1,scale=1)
 ggsave(file ="Figs/driversbytaxa_burst.svg", scale = 2.5)
 #ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
+
+legend_plot <- ggplot(taxa_df, 
+                      aes(x = as.factor(id), y = n)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
+  geom_bar(aes(x = as.factor(id), y = n, fill = Category), col = "black", stat="identity") +
+  scale_fill_manual(name = "Hotspot Category", 
+                    values=c("NA" = NA, "Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
+  theme(legend.title = element_text(size = 14,
+                                    face = "bold"),
+        legend.text = element_text(size = 12))
+ggsave(file ="Figs/driversbytaxa_legend.svg", scale = 2.5)
+
+
