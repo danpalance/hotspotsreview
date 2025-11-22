@@ -222,4 +222,4 @@ ggplot(drivertype_df, aes(x = x,
   labs(caption = "ggsankey package\n David Sjobergs @techanswers88") +
   labs(fill = 'Nodes')+
   scale_x_discrete(position = "top") # Move axis labels to top
-ggsave("figs/drivertype_sankey.png", height = 6, width = 12, units = "cm", scale = 3)
+ggsave("figs/drivertype_sankey.png", height = 6, width = 12, units = "cm", scale = 3, dpi = 600)

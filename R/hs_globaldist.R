@@ -106,8 +106,8 @@ saveRDS(main, file ="output/main_hs.RDS")
 
 # figure out how many studies spanned multiple realms, open ocean, or global
 multi_realm <- main %>% 
-  distinct(Title, keep_all = TRUE)
-308-297
+  separate_rows(REALM, sep=",") 
+307-296
 
 open_ocean <- main %>% 
   filter(REALM == "Open Ocean")
@@ -151,34 +151,42 @@ realm_plot <- ggplot() +
 ggsave(plot=realm_plot,"figs/realm_plot.png", scale=3.3, dpi = 600)
 
 global_dist <- ggplot() +
-  #geom_sf(data=realms, aes(fill=REALM), color="black") +
-  #scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", 
-                                                        # "Tropical Atlantic"="gold2","Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", 
-                                                        # "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        # "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4",
-                                                        # "Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1")) +
+  geom_sf(data=realms, aes(fill=REALM), color="black", alpha = 0.4) +
+  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen",
+  "Tropical Atlantic"="gold2","Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4",
+  "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
+  "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4",
+  "Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1")) +
   geom_sf(data = world, color = "black",fill = "black") +
   geom_point(data = hs_locations, aes(x = Lon, y = Lat, color = Category), 
-             size = 5, alpha = 0.5) +
+             size = 5, alpha = 0.8) +
   scale_color_manual(name = "Hotspot Category",
                     values=c("Anthropogenic" = "#CD950C",
                              "Biophysical" = "#0000CD",
                              "Ecological Impact" = "#228B22")) +
+  labs(tag = "A)") +
   theme_classic() +
   theme(axis.title = element_blank(),
         legend.title = element_text(face = "bold",
-                                    size = 20),
-        legend.text = element_text(size = 18),
+                                    size = 22),
+        legend.text = element_text(size = 20),
+        plot.tag = element_text(face = "bold",
+                                size = 24),
         # legend.position = "inside",
         # legend.position.inside = c(0.1, 0.2),
+        legend.box = "vertical", # stack the two legends vertically
         legend.position = "bottom",
         legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
+        legend.background = element_rect(fill = "transparent", colour = "transparent")) +
+  guides(color = guide_legend(nrow = 1, order = 1), #  point legend position
+         fill = guide_legend(nrow = 2, byrow = TRUE, order = 2))   # realm legend position 
+                         
+
 
 # Add probability density plots for lat-lon
 global_dist_dens <- ggExtra::ggMarginal(global_dist,fill = "black",
                                         adjust = 0.45, size = 12, alpha = 0.8)
-ggsave(plot=global_dist_dens,"figs/global_dist.png", scale=3.3, dpi = 600)
+ggsave(plot=global_dist_dens,"figs/global_dist.png", scale=3.35, dpi = 600)
 #ggsave(plot=global_dist_dens,"figs/global_dist.svg", scale=3.3, dpi = 600)
 
 # Create dataframe that sums number of studies per type for the map legend
@@ -189,12 +197,12 @@ realmstudies_df <- main %>%
   arrange(REALM,-n) 
 
 realms_plot <- ggplot(data = realmstudies_df) +
-  geom_bar(aes(x = reorder(REALM,n), y = n, fill = REALM), stat = "identity") +
+  geom_bar(aes(x = reorder(REALM,n), y = n, fill = REALM), stat = "identity", alpha = 0.4) +
   scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
                                                         "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
                                                         "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
                                                         "Global"="lightsteelblue4","Open Ocean"="gray59")) +
-  labs(x = "Realm", y = "Number of Studies") +
+  labs(x = "Realm", y = "Number of Studies", tag = "B)") +
   theme_classic() +
   theme(legend.position="none",
         axis.text = element_text(size = 12,
@@ -203,7 +211,9 @@ realms_plot <- ggplot(data = realmstudies_df) +
         axis.text.x = element_text(angle = 90, hjust = 1),
         axis.title = element_text(size = 14,
                                   face = "bold", 
-                                  color = "black")) +
+                                  color = "black"),
+        plot.tag = element_text(face = "bold",
+                                size = 16)) +
   scale_y_continuous(expand = c(0,0)) +
   coord_flip()
 ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.png", units="in", 
