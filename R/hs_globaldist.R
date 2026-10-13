@@ -1,8 +1,8 @@
 # Hotspot review paper code to build the main dataset from the spreadsheet
 # and plot the global distribution of hotspot work by geographic location
 # and depth
-# Written by Dan Palance
-# Last updated 09 June 2025
+# Written by Dan Palance with plot aesthetic assistance from Anthropic's Claude
+# Last updated 12 Oct 2026
 
 # read in required packages
 library(tidyverse)
@@ -97,12 +97,12 @@ main <- as.data.frame(meow_hs) %>%
   rbind(outside_meow, .) %>% 
   distinct() %>% 
   mutate(Type = forcats::fct_recode(Type, "Water Chemistry" = "Eutrophication & Acidification",
-                                    "Threat" = "Multi-Risk & Threat",
+                                    "Human Threat" = "Multi-Risk & Threat",
                                     "Fisheries" = "Fisheries & Bycatch",
                                     "Biodiversity & Endemism" = "Diversity & Endemism",
                                     "Invasive Species" = "Invasives"))
 saveRDS(main, file ="output/main_hs.RDS")
-#main <- readRDS(file ="output/main_hs.RDS")
+main <- readRDS(file ="output/main_hs.RDS")
 
 # figure out how many studies spanned multiple realms, open ocean, or global
 multi_realm <- main %>% 
@@ -130,65 +130,58 @@ hs_cats <- hs_types %>%
   summarize(Total = sum(n),
             Percent = Total/296)
 
-# Create hotspot map of # of studies by realm and add density plots of # of studies by lat and lon on sides ------
-realm_plot <- ggplot() +
-  geom_sf(data=realms, aes(fill=REALM), color="black") +
-  scale_fill_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", 
-                                                        "Tropical Atlantic"="gold2","Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", 
-                                                        "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4",
-                                                        "Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1")) +
-  geom_sf(data=world, color="black",fill="burlywood3") +
-  # guides(fill = guide_legend(position = "inside")) +
-  theme_classic() +
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        legend.text = element_text(size=28),
-        legend.position = "none",
-        legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", 
-                                         colour = "transparent"))
-ggsave(plot=realm_plot,"figs/realm_plot.png", scale=3.3, dpi = 600)
+# Create hotspot map of # of studies by realm and add density plots of # of studies by lat and lon on sides -----
+# colorblidn friendly palette thanks to Claude
+realm_cols <- c("Arctic" = "#88CCEE",
+                "Southern Ocean"= "#332288",
+                "Temperate Northern Pacific" = "#117733",
+                "Temperate Northern Atlantic" = "#44AA99",
+                "Tropical Atlantic" = "#DDCC77",
+                "Tropical Eastern Pacific" = "#999933",
+                "Central Indo-Pacific" = "#CC6677",
+                "Eastern Indo-Pacific" = "#882255",
+                "Western Indo-Pacific" = "#AA4499",
+                "Temperate Australasia" = "#E69F00",
+                "Temperate South America" = "#4477AA",
+                "Temperate Southern Africa"  = "#F4A582")
+
+# Color blind friendly categories thanks to claude
+pt_cols   <- c("Anthropogenic" = "#F2C100", "Biophysical" = "#0072B2", "Ecological Impact" = "#009E73")
 
 global_dist <- ggplot() +
-  geom_sf(data=realms, aes(color=REALM), fill = NA, linewidth = 2) +
-  scale_color_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen",
-  "Tropical Atlantic"="gold2","Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4",
-  "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-  "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4",
-  "Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1")) +
-  geom_sf(data = world, color = "black",fill = "black") +
-  geom_point(data = hs_locations, aes(x = Lon, y = Lat, fill = Category), 
-             pch = 21, size = 5, alpha = 0.8) +
-  scale_fill_manual(name = "Hotspot Category",
-                    values=c("Anthropogenic" = "#CD950C",
-                             "Biophysical" = "#0000CD",
-                             "Ecological Impact" = "#228B22")) +
+  geom_sf(data = realms, aes(fill = REALM), color = "black") +
+  scale_fill_manual(name = bquote(bold("Realm")), values = realm_cols) +
+  geom_sf(data = world, color = "black", fill = "black") +
+  
+  # white halo underneath so points stand out on any background
+  geom_point(data = hs_locations, aes(x = Lon, y = Lat),
+             shape = 20, size = 7, colour = "white") +
+  geom_point(data = hs_locations, aes(x = Lon, y = Lat, color = Category),
+             shape = 20, size = 5.5) +
+  scale_color_manual(name = "Hotspot Category", values = pt_cols) +
   labs(tag = "A)") +
   theme_classic() +
   theme(axis.title = element_blank(),
-        legend.title = element_text(face = "bold",
-                                    size = 22),
+        axis.text  = element_blank(),   
+        axis.ticks = element_blank(),   
+        axis.line  = element_blank(),    
+        legend.title = element_text(face = "bold", size = 22),
         legend.text = element_text(size = 20),
-        plot.tag = element_text(face = "bold",
-                                size = 24),
-        # legend.position = "inside",
-        # legend.position.inside = c(0.1, 0.2),
-        legend.box = "vertical", # stack the two legends vertically
+        plot.tag = element_text(face = "bold", size = 24),
+        legend.box = "vertical",
         legend.position = "bottom",
         legend.direction = "horizontal",
         legend.background = element_rect(fill = "transparent", colour = "transparent"),
         plot.margin = margin(t = 10, r = 20, b = 50, l = 20)) +
-  guides(color = guide_legend(nrow = 1, order = 1), #  point legend position
-         fill = guide_legend(nrow = 2, byrow = TRUE, order = 2))   # realm legend position 
+  guides(color = guide_legend(nrow = 1, order = 1, override.aes = list(size = 10)),
+         fill  = guide_legend(nrow = 2, byrow = TRUE, order = 2))
                          
-
 
 # Add probability density plots for lat-lon
 global_dist_dens <- ggExtra::ggMarginal(global_dist,fill = "black",
                                         adjust = 0.45, size = 12, alpha = 0.8)
-ggsave(plot=global_dist_dens,"figs/global_dist2.png", scale=3.35, dpi = 600)
-#ggsave(plot=global_dist_dens,"figs/global_dist.svg", scale=3.3, dpi = 600)
+ggsave(plot = global_dist_dens,"figs/global_distcb.png", width = 9, height = 6,
+       units = "in", scale = 3.35, dpi = 600)
 
 # Create dataframe that sums number of studies per type for the map legend
 realmstudies_df <- main %>% 
@@ -198,11 +191,23 @@ realmstudies_df <- main %>%
   arrange(REALM,-n) 
 
 realms_plot <- ggplot(data = realmstudies_df) +
-  geom_bar(aes(x = reorder(REALM,n), y = n, fill = REALM), stat = "identity", alpha = 0.4) +
-  scale_color_manual(name=bquote(bold("Realm")),values=c("Arctic"="skyblue1", "Southern Ocean"="cornflowerblue", "Temperate Northern Pacific"="mediumseagreen", "Tropical Atlantic"="gold2",
-                                                        "Central Indo-Pacific"="sienna2", "Temperate Australasia"="maroon4", "Temperate South America"="turquoise", "Tropical Eastern Pacific"="olivedrab1",
-                                                        "Eastern Indo-Pacific"="palevioletred1","Temperate Northern Atlantic"="palegreen4","Temperate Southern Africa"="slategray2", "Western Indo-Pacific"="thistle1",
-                                                        "Global"="lightsteelblue4","Open Ocean"="gray59")) +
+  geom_bar(aes(x = reorder(REALM, n), y = n, fill = REALM), 
+           stat = "identity", color = "black") +
+  scale_fill_manual(name = bquote(bold("Realm")), 
+                     values = c("Arctic" = "#88CCEE",
+                               "Southern Ocean" = "#332288",
+                               "Temperate Northern Pacific" = "#117733",
+                               "Temperate Northern Atlantic"= "#44AA99",
+                               "Tropical Atlantic" = "#DDCC77",
+                               "Tropical Eastern Pacific" = "#999933",
+                               "Central Indo-Pacific" = "#CC6677",
+                               "Eastern Indo-Pacific" = "#882255",
+                               "Western Indo-Pacific" = "#AA4499",
+                               "Temperate Australasia" = "#E69F00",
+                               "Temperate South America" = "#4477AA",
+                               "Temperate Southern Africa"  = "#F4A582",
+                               "Global" = "lightsteelblue4",
+                               "Open Ocean" = "black")) +
   labs(x = "Realm", y = "Number of Studies", tag = "B)") +
   theme_classic() +
   theme(legend.position="none",
@@ -217,134 +222,9 @@ realms_plot <- ggplot(data = realmstudies_df) +
                                 size = 16)) +
   scale_y_continuous(expand = c(0,0)) +
   coord_flip()
-ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.png", units="in", 
+
+ggsave(plot = realms_plot, "figs/studiesbyrealm_plot_cb.png", units="in", 
        height = 6, width = 6, dpi = 600)
-ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.svg", units="in", 
-       height = 6, width = 6, dpi = 600)
-
-
-
-# Make bottom panel bar plot for for different depths
-depth_summary <- main %>% 
-  separate_rows(Depth, sep=",") %>% 
-  drop_na() %>% 
-  group_by(Depth) %>% 
-  count() %>% 
-  ungroup() %>% 
-  mutate(Percent = n/296)
-
-hs_depth <- main %>% 
-  separate_rows(Depth,sep=",") %>% 
-  drop_na() %>% # remove Myers study
-  count(Depth,Category) 
-
-depth_labels <-c("Surface", "Demersal", "Midwater")
-
-
-depth_plot <- ggplot(data=hs_depth) +
-  geom_bar(aes(x = reorder(Depth, -n), y = n, fill = Category), 
-           width = 0.5, stat = "identity") +
-  labs(x="Depth Zone",y="Number of Studies") +
-  theme_classic() +
-  theme(axis.title = element_blank(),
-        legend.title = element_text(size=14,face="bold"),
-        legend.text = element_text(size=12,face="bold"),
-        legend.position = "inside",
-        legend.position.inside = c(0.65,0.8),
-        legend.background = element_rect(fill = "transparent", colour = "transparent"),
-        axis.text.x = element_text(size=12,face="bold",color="black"),
-        axis.title.x = element_text(size=14,face="bold",color="black"),
-        axis.text.y = element_text(size=12,face="bold",color="black"),
-        axis.title.y = element_text(size=14,face="bold",color="black")) +
-  scale_fill_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecological Impact"="#228B22")) +
-  scale_y_continuous(expand=c(0,0)) +
-  scale_x_discrete(labels= depth_labels)
-ggsave(plot=depth_plot,"figs/depth_plot.png", units="in", 
-       height = 6, width = 3.5, dpi = 600)
-ggsave(plot=depth_plot,"figs/depth_plot.svg", units="in", 
-       height = 6, width = 3.5, dpi = 600)
-
-
-# Combine the realms bar graph and depth plot to keep text the same size
-
-bottom_row <- cowplot::plot_grid(realms_plot, depth_plot, ncol = 2,
-                                 rel_widths = c(2,1.1))
-ggsave(plot = bottom_row,"figs/globaldist_bottomrow.png", dpi = 600, 
-       scale = 1.5, width = 8, height = 6)
-ggsave(plot = bottom_row,"figs/globaldist_bottomrow.svg", dpi = 600, 
-       scale = 1.5, width = 8, height = 6)
-
-#### Extra plots to visualize other dimensions of the data but not included in paper ####
-
-# Take a look at depth around the world
-depth_by_location <- hs_locations %>% 
-  separate_rows(Depth,sep=",") %>% 
-  drop_na() 
-
-percents_depth <- depth_by_location %>% 
-  filter(Depth == "mid")
-
-# First look at surface oriented studies
-surface_depth_plot <- ggplot() +
-  geom_sf(data=world, color="black",fill="burlywood3") +
-  geom_point(data=depth_by_location %>% filter(Depth == "surface"), aes(x=Lon,y=Lat, color=Category), size=5, alpha=0.75) +
-  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
-  theme_classic() +
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        legend.text = element_text(size=24),
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
-ggsave(plot=surface_depth_plot,"figs/surface_depth_plot.png",scale=3.3)
-
-# Add probability density plots for lat-lon
-surface_depth_plot <- ggExtra::ggMarginal(surface_depth_plot , 
-                                          groupFill = FALSE,
-                                          fill = "black",
-                                          adjust=0.45,size=12, alpha = 0.75)
-ggsave(plot=surface_depth_plot,"figs/surface_depth_plot.png",scale=3.3)
-
-# Make the same plot for midwater
-mid_depth_plot <- ggplot() +
-  geom_sf(data=world, color="black",fill="burlywood3") +
-  geom_point(data=depth_by_location %>% filter(Depth == "mid"), aes(x=Lon,y=Lat, color=Category), size=5, alpha=0.75) +
-  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
-  theme_classic() +
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        legend.text = element_text(size=24),
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
-
-# Add probability density plots for lat-lon
-mid_depth_plot <- ggExtra::ggMarginal(mid_depth_plot , 
-                                      groupFill = FALSE,
-                                      fill = "black",
-                                      adjust=0.45,size=12, alpha = 0.75)
-ggsave(plot=mid_depth_plot,"figs/mid_depth_plot.png",scale=3.3)
-
-# Make the same plot for demersal
-demersal_depth_plot <- ggplot() +
-  geom_sf(data=world, color="black",fill="burlywood3") +
-  geom_point(data=depth_by_location %>% filter(Depth == "demersal"), aes(x=Lon,y=Lat, color=Category), size=5, alpha=0.75) +
-  scale_color_manual(values=c("Anthropogenic"="#CD950C","Biophysical"="#0000CD","Ecoimpact"="#228B22")) +
-  theme_classic() +
-  theme(axis.title = element_blank(),
-        legend.title = element_blank(),
-        legend.text = element_text(size=24),
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"))
-
-# Add probability density plots for lat-lon
-demersal_depth_plot <- ggExtra::ggMarginal(demersal_depth_plot , 
-                                      groupFill = FALSE,
-                                      fill = "black",
-                                      adjust=0.45,size=12, alpha = 0.75)
-ggsave(plot=demersal_depth_plot,"figs/demersal_depth_plot.png",scale=3.3)
-
-
-
+# ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.svg", units="in", 
+#        height = 6, width = 6, dpi = 600)
 

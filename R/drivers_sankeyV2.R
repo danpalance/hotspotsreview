@@ -1,7 +1,7 @@
 # This code creates a sankey plot of hotspot covariates and indicators which are
 # referred to as drivers from an earlier draft and kept here for simplicity
 # written by Dan Palance 
-# last modified on 26 Sep 2025
+# last modified on 12 Oct 2026
 
 # Load required packages
 library(tidyverse)
@@ -203,23 +203,22 @@ ggplot(drivertype_df, aes(x = x,
                                "Habitat" = "blue",
                                "Nutrients & Biogeochemical-Cycling" = "blue",
                                "Reproduction & Recruitment" = "blue",
-                               "Bioaccumulation"  ="darkgreen",
-                               "Fisheries"  ="darkgreen",
-                               "Invasive Species"  ="darkgreen",
-                               "Mortality"  ="darkgreen",
-                               "Threat"  ="darkgreen",
-                               "Warming"  ="darkgreen",
-                               "Water Chemistry"  ="darkgreen",
-                               "Pollution"  = "goldenrod",
-                               "Dynamic Physical" = "firebrick4",
+                               "Bioaccumulation"  ="#009E73",
+                               "Fisheries"  ="#009E73",
+                               "Invasive Species"  ="#009E73",
+                               "Mortality"  ="#009E73",
+                               "Threat"  ="#009E73",
+                               "Warming"  ="#009E73",
+                               "Water Chemistry"  ="#009E73",
+                               "Pollution"  = "#F2C100",
+                               "Dynamic Physical" = "black",
                                "Static Physical" = "saddlebrown",
-                               "Ecological" = "coral",
-                               "Biogeochem" = "steelblue",
+                               "Ecological" = "#D55E00",
+                               "Biogeochem" = "#56B4E9",
                                "Species Attributes" = "orchid",
                                "Human Activity" = "khaki")) +
   #labs(title = "Hotspot covariates by Category", hjust = 0.5) +
   labs(subtitle = ) +
-  labs(caption = "ggsankey package\n David Sjobergs @techanswers88") +
   labs(fill = 'Nodes')+
   scale_x_discrete(position = "top") # Move axis labels to top
 ggsave("figs/drivertype_sankey.png", height = 6, width = 12, units = "cm", scale = 3, dpi = 600)

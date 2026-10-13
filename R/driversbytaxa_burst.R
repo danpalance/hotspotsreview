@@ -81,7 +81,8 @@ grid_data <- grid_data[-1,]
 # Make the plot
 p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill = Taxa2)) +       # Note that id is a factor. If x is numeric, there is some space between the first bar
         geom_bar(aes(x = as.factor(id), y = n, fill = Taxa2), col = "black", stat="identity") +
-        scale_fill_brewer(palette = "Set3") +
+        scale_fill_manual(values = c("#000000", "#E69F00", "#56B4E9", "#F0E442",
+                                     "#D55E00", "#CC79A7", "#999999", "#882255")) + # colorblind friendly palette from Claude
         geom_segment(data=grid_data, aes(x = end, y = 80, xend = start, yend = 80), 
                      colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE) +
         geom_segment(data=grid_data, aes(x = end, y = 60, xend = start, yend = 60), 
@@ -99,7 +100,8 @@ p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill = Taxa2)) +       # Note th
               axis.text = element_blank(),
               axis.title = element_blank(),
               panel.grid = element_blank(),
-              plot.margin = unit(rep(-1,4), "cm")) +
+              plot.margin = unit(rep(-1,4), "cm"),
+              plot.background = element_blank()) +
         coord_polar() + 
         geom_text(data = label_data, aes(x = id, y = n+10, label = stringr::str_to_title(Condensed_var), hjust = hjust), 
                   color = "black", fontface = "bold", alpha = 0.6, size = 4, 
@@ -113,22 +115,23 @@ p1 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill = Taxa2)) +       # Note th
 
 # Inner bar plot
 p2 <- ggplot(taxa_df, aes(x=as.factor(id), y=n, fill=Taxa2)) +       
-  geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), , col=NA, width =1.1) + 
-  scale_fill_brewer(palette = "Set3") +
+  geom_col(aes(x=as.factor(id), y=Total, fill=Taxa2), col=  NA, width = 1.1) + 
+  scale_fill_manual(values = c("#000000", "#E69F00", "#56B4E9", "#F0E442",
+                               "#D55E00", "#CC79A7", "#999999", "#882255")) + # colorblind friendly palette from Claude
   coord_polar() +
   theme_minimal() +
   theme(legend.position = "none",
         axis.text = element_blank(),
         axis.title = element_blank(),
         panel.grid = element_blank(),
-        plot.margin = unit(rep(-1,4),"cm")) 
+        plot.margin = unit(rep(-1,4),"cm"),
+        plot.background = element_blank()) 
 
 # Nest the circular bar charts 
 ggdraw() +
   draw_plot(p2,scale=0.38) +
   draw_plot(p1,scale=1)
-#ggsave(file ="Figs/driversbytaxa_burst.svg", scale = 2.5)
-#ggsave(file ="Figs/driversbytaxa_burst.png", scale = 2.5)
+ggsave(file ="Figs/driversbytaxa_burst_cb.svg", scale = 2.5)
 
 
 #### Make plots for each taxa broken down by driver components
