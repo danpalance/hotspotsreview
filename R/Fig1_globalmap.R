@@ -2,7 +2,7 @@
 # and plot the global distribution of hotspot work by geographic location
 # and depth
 # Written by Dan Palance with plot aesthetic assistance from Anthropic's Claude
-# Last updated 12 Oct 2026
+# Last updated 19 Nov 2026
 
 # read in required packages
 library(tidyverse)
@@ -155,33 +155,47 @@ global_dist <- ggplot() +
   
   # white halo underneath so points stand out on any background
   geom_point(data = hs_locations, aes(x = Lon, y = Lat),
-             shape = 20, size = 7, colour = "white") +
+             shape = 20, size = 1.2, colour = "black") +
   geom_point(data = hs_locations, aes(x = Lon, y = Lat, color = Category),
-             shape = 20, size = 5.5) +
+             shape = 20, size = 1) +
   scale_color_manual(name = "Hotspot Category", values = pt_cols) +
-  labs(tag = "A)") +
   theme_classic() +
-  theme(axis.title = element_blank(),
+  theme(text = element_text(family = "Arial"),
+        axis.title = element_blank(),
         axis.text  = element_blank(),   
         axis.ticks = element_blank(),   
         axis.line  = element_blank(),    
-        legend.title = element_text(face = "bold", size = 22),
-        legend.text = element_text(size = 20),
-        plot.tag = element_text(face = "bold", size = 24),
-        legend.box = "vertical",
-        legend.position = "bottom",
-        legend.direction = "horizontal",
-        legend.background = element_rect(fill = "transparent", colour = "transparent"),
-        plot.margin = margin(t = 10, r = 20, b = 50, l = 20)) +
-  guides(color = guide_legend(nrow = 1, order = 1, override.aes = list(size = 10)),
+        legend.title = element_text(face = "bold", 
+                                    size = 8,
+                                    color = "black"),
+        legend.text = element_text(size = 7,
+                                   face = "bold", 
+                                   color = "black"),
+        legend.position    = "bottom",
+        legend.direction   = "horizontal",
+        legend.box         = "vertical",
+        legend.box.spacing = unit(0, "pt"),
+        legend.margin      = margin(0, 0, 0, 0),
+        legend.spacing.y   = unit(1, "pt"),
+        legend.key.size    = unit(0.3, "cm"),
+        plot.margin        = margin(t = 5, r = 10, b = 7, l = 10),
+        legend.background = element_rect(fill = "transparent", colour = "transparent")) +
+  guides(color = guide_legend(nrow = 1, order = 1, override.aes = list(size = 2)),
          fill  = guide_legend(nrow = 2, byrow = TRUE, order = 2))
                          
 
 # Add probability density plots for lat-lon
 global_dist_dens <- ggExtra::ggMarginal(global_dist,fill = "black",
                                         adjust = 0.45, size = 12, alpha = 0.8)
-ggsave(plot = global_dist_dens,"figs/global_distcb.png", width = 9, height = 6,
-       units = "in", scale = 3.35, dpi = 600)
+
+global_dist_final <- ggdraw(global_dist_dens) +
+                      draw_label("A)", x = 0.01, y = 0.99,
+                                 hjust = 0, vjust = 1,
+                                 fontface = "bold", size = 8,
+                                 fontfamily = "Arial")
+
+ggsave(plot = global_dist_final,"figs/global_distcb.png", width = 7, height = 4.5,
+       units = "in", dpi = 300)
 
 # Create dataframe that sums number of studies per type for the map legend
 realmstudies_df <- main %>% 
@@ -210,21 +224,22 @@ realms_plot <- ggplot(data = realmstudies_df) +
                                "Open Ocean" = "black")) +
   labs(x = "Realm", y = "Number of Studies", tag = "B)") +
   theme_classic() +
-  theme(legend.position="none",
-        axis.text = element_text(size = 12,
+  theme(text = element_text(family = "Arial"),
+        legend.position="none",
+        axis.text = element_text(size = 7,
                                  face = "bold", 
                                  color = "black"), 
         axis.text.x = element_text(angle = 90, hjust = 1),
-        axis.title = element_text(size = 14,
+        axis.title = element_text(size = 8,
                                   face = "bold", 
                                   color = "black"),
         plot.tag = element_text(face = "bold",
-                                size = 16)) +
+                                size = 8)) +
   scale_y_continuous(expand = c(0,0)) +
   coord_flip()
 
 ggsave(plot = realms_plot, "figs/studiesbyrealm_plot_cb.png", units="in", 
-       height = 6, width = 6, dpi = 600)
+       height = 2, width = 2, dpi = 300)
 # ggsave(plot = realms_plot, "figs/studiesbyrealm_plot.svg", units="in", 
 #        height = 6, width = 6, dpi = 600)
 

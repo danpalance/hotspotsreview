@@ -149,7 +149,7 @@ type_perc <- drivers_san %>%
   dplyr::group_by(node) %>% 
   tally() %>% 
   ungroup() %>%  
-  filter(stringr::str_detect(node,"Threat|Abundance/Density|Invasive Species|Biodiversity & Endemism|Habitat|Warming|Fisheries|Bioaccumulation|'Nutrients & Biogeochemical-Cycling'|Pollution|Foraging|Reproduction & Recruitment|Water Chemistry|Mortality")) %>% 
+  filter(stringr::str_detect(node,"Human Threat|Abundance/Density|Invasive Species|Biodiversity & Endemism|Habitat|Warming|Fisheries|Bioaccumulation|'Nutrients & Biogeochemical-Cycling'|Pollution|Foraging|Reproduction & Recruitment|Water Chemistry|Mortality")) %>% 
   dplyr::group_by(node) %>%
   dplyr::mutate(pct = round(((pct = n/457)*100),1)) %>% 
   ungroup()
@@ -166,7 +166,7 @@ ggplot(drivertype_df, aes(x = x,
                          node = fct_relevel(node,
                                             "Water Chemistry",
                                             "Warming",
-                                            "Threat",
+                                            "Human Threat",
                                             "Invasive Species",
                                             "Mortality",
                                             "Fisheries",
@@ -207,7 +207,7 @@ ggplot(drivertype_df, aes(x = x,
                                "Fisheries"  ="#009E73",
                                "Invasive Species"  ="#009E73",
                                "Mortality"  ="#009E73",
-                               "Threat"  ="#009E73",
+                               "Human Threat"  ="#009E73",
                                "Warming"  ="#009E73",
                                "Water Chemistry"  ="#009E73",
                                "Pollution"  = "#F2C100",
