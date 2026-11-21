@@ -1,8 +1,8 @@
-# This code creates the timeline of hotspot types for the hotspot manuscript
+# This code creates the timeline of hotspot categories for the hotspot manuscript
 # Create timeline dataframes by adapting code from here: 
 # https://benalexkeen.com/creating-a-timeline-graphic-using-r-and-ggplot2/ 
 # Written by Dan Palance
-# Last modified on 09 June 2025
+# Last modified on 20 Nov 2026
 
 # Load required packages
 library(tidyverse)
@@ -78,42 +78,45 @@ colnames(year_date_range)[1] ="Year"
 
 # Create timeline showing cumulative sum of studies with first study of each type labeled
 # catsum_plot <- ggplot(data=csum_final) +
-ggplot(data=csum_final) +
-  xlim(1988,2023) + # adjust the west end of the x axis so it isn't cutting off text labels
-  labs(x="Year", y="Cumulative # of Studies") +
-  geom_area(aes(x=Year,y=Csum,fill=Category),position=position_identity(), show.legend = FALSE) + # remove legend argument to show it
+ggplot(data = csum_final) +
+  xlim(1988, 2023) + # adjust the west end of the x axis so it isn't cutting off text labels
+  labs(x = "Year", y = "Cumulative # of Studies") +
+  geom_area(aes(x = Year, y = Csum, fill = Category),
+            position = position_identity(), show.legend = FALSE) + # remove legend argument to show it
   scale_fill_manual(values=c("Anthropogenic" = "#F2C100",
-                             "Biophysical"="#0072B2",
-                             "Ecological Impact"="#009E73")) +
+                             "Biophysical" = "#0072B2",
+                             "Ecological Impact" = "#009E73")) +
   # Plot horizontal black line for timeline
-  geom_hline(yintercept=0,color="black", linewidth = 0.5) +
-  scale_color_manual(values=c("Anthropogenic" = "#F2C100",
-                              "Biophysical"="#0072B2",
-                              "Ecological Impact"="#009E73")) +
+  geom_hline(yintercept = 0, color = "black", linewidth = 0.5) +
+  scale_color_manual(values = c("Anthropogenic" = "#F2C100",
+                              "Biophysical" = "#0072B2",
+                              "Ecological Impact" = "#009E73")) +
   geom_text(data = year_date_range,
-            aes(x = Year, y = -5, label = Year, fontface = "bold"),
-            size = 5, color='black') +
+            aes(x = Year, y = -7, label = Year, fontface = "bold"),
+            size = 2.5, color = 'black', family = "arial") +
   scale_x_break(c(1991, 2000)) +
   theme_classic() +
-  annotate("point", x = 2000, y = 175, pch = 15, size = 5, color = "#0072B2") +
-  annotate("point", x = 2000, y = 167, pch = 15, size = 5, color = "#009E73") +
-  annotate("point", x = 2000, y = 159, pch = 15, size = 5, color = "#F2C100") +
-  annotate("text", x = 2000.3, y = 175, label = "Biophysical", size = 5, fontface = "bold", hjust = 0) +
-  annotate("text", x = 2000.3, y = 167, label = "Ecological Impact", size = 5, fontface = "bold", hjust = 0) +
-  annotate("text", x = 2000.3, y = 159, label = "Anthropogenic", size = 5, fontface = "bold", hjust = 0) +
+  annotate("point", x = 2000, y = 175, pch = 15, size = 2, color = "#0072B2") +
+  annotate("point", x = 2000, y = 163, pch = 15, size = 2, color = "#009E73") +
+  annotate("point", x = 2000, y = 151, pch = 15, size = 2, color = "#F2C100") +
+  annotate("text", x = 2000.3, y = 175, label = "Biophysical", size = 2, 
+           fontface = "bold", hjust = 0, family = "arial") +
+  annotate("text", x = 2000.3, y = 163, label = "Ecological Impact", size = 2, 
+           fontface = "bold", hjust = 0, family = "arial") +
+  annotate("text", x = 2000.3, y = 151, label = "Anthropogenic", size = 2, 
+           fontface = "bold", hjust = 0, family = "arial") +
   theme(legend.position = "none",
-        axis.text.y = element_text(face="bold",
-                                   size = 14,
-                                   color="black"),
-        axis.title.y = element_text(face="bold",
-                                    size = 16,
-                                    color="black"),
-        axis.title.x = element_text(face="bold",
-                                    size = 16,
-                                    color="black"),
+        axis.text.y = element_text(face = "bold",
+                                   size = 7,
+                                   color = "black",
+                                   family = "arial"),
+        axis.title = element_text(face = "bold",
+                                  size = 8,
+                                  color = "black",
+                                  family = "arial"),
         axis.text.x = element_blank(),
         axis.ticks.x = element_blank(),
         axis.line.x = element_blank()) 
-ggsave(filename="./figs/catsum_time.png", units = "in", 
-       width = 12, height = 4, scale = 1.4)
+ggsave(filename = "./figs/Fig2_timeline.tif", units = "in", 
+       width = 6, height = 2)
 
