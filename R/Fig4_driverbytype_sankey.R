@@ -10,7 +10,7 @@ library(ggsankey)
 # Repurposed code from this tutorial
 # https://rpubs.com/techanswers88/sankey-with-own-data-in-ggplot
 
-# Read in the main dataframe created in hs_globaldist.R
+# read in data created in FigS1_globalmap.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver

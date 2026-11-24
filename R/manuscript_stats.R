@@ -1,10 +1,10 @@
 # Random stats used for percentages in manuscript like number of studies 
 # that looked at persistence, different methods, etc.
 # Written by Dan Palance
-# Last updated 09 June 2025
+# Last updated 24 Nov 2026
 library(tidyverse)
 
-# read in data from hs_globaldist.R and remove duplicates from multirealm studies
+# read in data created in FigS1_globalmap.R
 main <- readRDS("output/main_hs.RDS") %>% distinct(Title, .keep_all = TRUE) 
 
 type_perc <- main %>% 

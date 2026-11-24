@@ -8,7 +8,7 @@
 library(tidyverse)
 library(cowplot)
 
-# Read in the data from hs_globaldist.R
+# read in data created in FigS1_globalmap.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 # Create a dataframe with rows for each driver

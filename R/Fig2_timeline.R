@@ -8,7 +8,7 @@
 library(tidyverse)
 library(ggbreak)
 
-# read in data created in hs_globaldist.R
+# read in data created in FigS1_globalmap.R
 main <- readRDS("output/main_hs.RDS")
 
 # Create dataframe for cumulative number of studies per year by type

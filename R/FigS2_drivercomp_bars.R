@@ -1,13 +1,12 @@
 # This code creates the hotspot driver components by type bar graphs
-# Modified original code from https://r-graph-gallery.com/297-circular-barplot-with-groups.html
 # Written by Dan Palance
-# Last modified 05 Nov 2025
+# Last modified 24 Nov 2026
 
 # read in required packages
 library(tidyverse)
 library(cowplot)
 
-# Read in the main dataframe created in hs_globaldist.R
+# Read in the main dataframe created in figS1_globalmap.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 #### Individual Subplots ####
@@ -149,9 +148,11 @@ ggplot(data = df) +
   theme_classic() +
   theme(axis.text.x = element_text(angle = 90,
                                    hjust = 1),
-        axis.text = element_text(size = 12),
-        plot.title = element_text(size = 16,
+        axis.text = element_text(size = 7,
+                                 family = "arial"),
+        plot.title = element_text(size = 8,
                                   face = "bold",
+                                  family = "arial",
                                   hjust = 0.5)) +
   scale_y_continuous(expand = c(0,0)) 
 
@@ -167,8 +168,9 @@ comp_plots <- cowplot::plot_grid(plot_list[[1]], plot_list[[2]],
                                  plot_list[[3]], plot_list[[4]],
                                  plot_list[[5]], plot_list[[6]],
                                  labels = "AUTO",
-                                 label_size = 14,
+                                 label_size = 8,
                                  label_fontface = "bold",
+                                 label_fontfamily = "arial",
                                  label_x = 0.06,
                                  align="hv",
                                  ncol = 2)
@@ -177,15 +179,14 @@ final_plot <- cowplot::ggdraw(comp_plots) +
   cowplot::draw_label("Driver Components", 
                       x = 0.5, y = 0.02,   # centered below
                       vjust = 1, hjust = 0.5,
-                      size = 16, fontface = "bold") +
+                      size = 8, fontface = "bold", fontfamily = "arial") +
   cowplot::draw_label("# of Studies", 
                       x = 0.0, y = 0.5,   # centered left
-                      angle = 90, fontface = "bold",
+                      angle = 90, fontface = "bold", fontfamily = "arial",
                       vjust = 1, hjust = 0.5,
-                      size = 16)
-final_plot
-ggsave(plot = final_plot,"figs/drivercomp_plots.png", dpi = 600, 
-       width = 7.5, height = 11)
+                      size = 8)
+ggsave(plot = final_plot,"figs/drivercomp_plots.tif", dpi = 300, 
+       width = 6.5, height = 8)
 
 
 

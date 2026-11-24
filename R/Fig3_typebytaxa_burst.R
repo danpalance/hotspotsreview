@@ -7,7 +7,7 @@
 library(tidyverse)
 library(cowplot)
 
-# Read in the data from hs_globaldist.R
+# read in data created in FigS1_globalmap.R
 main <- readRDS(file ="output/main_hs.RDS")
 
 # Make dataframe seprating taxa and hotspot type into rows and condensing them into broader categories
