@@ -1,7 +1,6 @@
-# This code creates a sankey plot of hotspot covariates and indicators which are
-# referred to as drivers from an earlier draft and kept here for simplicity
+# This code creates a sankey plot of hotspot drivers and types which are
 # written by Dan Palance 
-# last modified on 12 Oct 2026
+# last modified on 24 Nov 2026
 
 # Load required packages
 library(tidyverse)
