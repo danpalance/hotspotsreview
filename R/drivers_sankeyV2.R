@@ -72,7 +72,8 @@ ggplot(drivercat_df, aes(x = x,
             show.legend = FALSE) +
   geom_sankey_label(size = 4, color = "black", 
                     fill= "white", hjust = 0,
-                    fontface = "bold") +
+                    fontface = "bold",
+                    family = "arial") +
   theme_classic() +
   theme(legend.position = "none") +
   theme(axis.title = element_blank(),
@@ -94,7 +95,6 @@ ggplot(drivercat_df, aes(x = x,
                                "Human Activity" = "khaki")) +
   #labs(title = "Hotspot covariates by Category", hjust = 0.5) +
   labs(subtitle = ) +
-  labs(caption = "ggsankey package\n David Sjobergs @techanswers88") +
   labs(fill = 'Nodes')+
   scale_x_discrete(position = "top") # Move axis labels to top
 ggsave("figs/drivercat_sankey.png", height = 6, width = 18, units = "cm", scale = 3.5)
@@ -184,9 +184,10 @@ ggplot(drivertype_df, aes(x = x,
   geom_sankey(flow.alpha = 0.8,
               node.color = "black",
               show.legend = FALSE) +
-  geom_sankey_label(size = 4, color = "black", 
+  geom_sankey_label(size = 2.25, color = "black", 
                     fill= "white", hjust = 0,
-                    fontface = "bold") +
+                    fontface = "bold",
+                    family = "arial") +
   theme_classic() +
   theme(legend.position = "none") +
   theme(axis.title = element_blank(),
@@ -195,7 +196,7 @@ ggplot(drivertype_df, aes(x = x,
         panel.grid = element_blank(),
         axis.line = element_blank(),
         axis.text = element_text(face = "bold",
-                                 size = 16,
+                                 size = 8,
                                  color = "black")) +
   scale_fill_manual(values = c("Abundance/Density" = "blue",
                                "Biodiversity & Endemism" = "blue",
@@ -221,4 +222,4 @@ ggplot(drivertype_df, aes(x = x,
   labs(subtitle = ) +
   labs(fill = 'Nodes')+
   scale_x_discrete(position = "top") # Move axis labels to top
-ggsave("figs/drivertype_sankey.png", height = 6, width = 12, units = "cm", scale = 3, dpi = 600)
+ggsave("figs/drivertype_sankey.png", height = 6, width = 8, units = "in", dpi = 300)
